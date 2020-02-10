@@ -5,6 +5,8 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.ClanChanged;
+import net.runelite.api.events.MenuEntryAdded;
+import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -13,6 +15,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.util.Text;
 import net.runelite.client.Notifier;
 import net.runelite.api.events.ClanMemberJoined;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.List;
@@ -43,6 +46,19 @@ public class ClanChatWarningsPlugin extends Plugin{
 	protected void startUp() throws Exception
 	{
 		this.updateWarners();
+		Friend array[]=this.client.getFriendContainer().getMembers();
+		for(int x = 0; x!=this.client.getFriendContainer().getMembers().length; x++) {
+			System.out.println("Now running person "+x);
+			String friendName = Text.toJagexName(array[x].getName());
+			System.out.println("Current name is "+friendName);
+			if(!StringUtils.isEmpty(array[x].getPrevName())){
+				String prevName = Text.toJagexName(array[x].getPrevName());
+				System.out.println("Prev name was "+prevName);
+			}else{
+				System.out.println("No previous name found");
+			}
+
+		}
 	}
 
 	@Override
