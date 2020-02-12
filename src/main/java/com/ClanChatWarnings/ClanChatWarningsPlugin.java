@@ -2,21 +2,19 @@ package com.ClanChatWarnings;
 
 import com.google.inject.Provides;
 import javax.inject.Inject;
+
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
-import net.runelite.api.events.ClanChanged;
-import net.runelite.api.events.MenuEntryAdded;
-import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.api.events.*;
+import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.menus.MenuManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.util.Text;
 import net.runelite.client.Notifier;
-import net.runelite.api.events.ClanMemberJoined;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -34,7 +32,8 @@ public class ClanChatWarningsPlugin extends Plugin{
 	private Client client;
 	@Inject
 	private Notifier ping;
-
+	@Inject
+	private MenuManager menuManager;
 	@Inject
 	private ClanChatWarningsConfig config;
 
@@ -43,26 +42,13 @@ public class ClanChatWarningsPlugin extends Plugin{
 	}
 
 	@Override
-	protected void startUp() throws Exception
+	protected void startUp()
 	{
 		this.updateWarners();
-		Friend array[]=this.client.getFriendContainer().getMembers();
-		for(int x = 0; x!=this.client.getFriendContainer().getMembers().length; x++) {
-			System.out.println("Now running person "+x);
-			String friendName = Text.toJagexName(array[x].getName());
-			System.out.println("Current name is "+friendName);
-			if(!StringUtils.isEmpty(array[x].getPrevName())){
-				String prevName = Text.toJagexName(array[x].getPrevName());
-				System.out.println("Prev name was "+prevName);
-			}else{
-				System.out.println("No previous name found");
-			}
-
-		}
 	}
 
 	@Override
-	protected void shutDown() throws Exception
+	protected void shutDown()
 	{
 		this.warnings.clear();
 	}
@@ -76,37 +62,65 @@ public class ClanChatWarningsPlugin extends Plugin{
 		var10000.forEach(var10001::add);
 	}
 
-	private void sendNotification(String player) {
+
+	private void sendNotification(String player,String Comment) {
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append(player).append(" has joined Clan Chat, beware.");
+		if(Comment.isEmpty()) {
+			stringBuilder.append(player).append(" has joined Clan Chat, beware.");
+		}else{
+			stringBuilder.append(player).append(" has joined Clan Chat. ").append(Comment);
+		}
 		String notification = stringBuilder.toString();
-		System.out.println(notification);
 		this.client.addChatMessage(ChatMessageType.FRIENDSCHATNOTIFICATION, "", notification, "");
-		if(this.config.warnedAttention())
-			this.ping.notify(notification);
+		if(this.config.warnedAttention()) {
+			if (this.clanJoinedTick != this.client.getTickCount() || this.config.selfPing()) {
+				this.ping.notify(notification);
+				System.out.println(notification);
+			}
+		}
 	}
 
 	@Subscribe
-	public void onClanMemberJoined(ClanMemberJoined event) {
-		ClanMember member = event.getMember();
-		String memberName = Text.toJagexName(member.getName());
-		StringBuffer sb;
-		for(Iterator var4 = this.warnings.iterator(); var4.hasNext(); memberName = sb.toString()) {
-			Pattern pattern = (Pattern)var4.next();
-			Matcher m = pattern.matcher(memberName);
-			sb = new StringBuffer();
-			while(m.find()) {
-				if (this.clanJoinedTick != this.client.getTickCount()) {
-					sendNotification(memberName);
+	public void onClanMemberJoined(ClanMemberJoined event){
+		if (this.clanJoinedTick != this.client.getTickCount()||this.config.selfCheck()) {
+			ClanMember member = event.getMember();
+			String memberName = Text.toJagexName(member.getName());
+			StringBuffer sb;
+			for(Iterator var4 = this.warnings.iterator(); var4.hasNext(); memberName = sb.toString()) {
+				Pattern pattern = (Pattern)var4.next();
+				Pattern pattern1=Pattern.compile("-");
+				String temp= "\\\\";
+				String test[]=pattern1.split(pattern.toString());
+				String note="";
+				if(test.length>1) {
+					for (Integer x = 0; x < test.length; x++) {
+						if (x == test.length - 1) {
+							String test2[] = test[x].split(temp);
+							if(x>1)
+								note+="-";
+							note += test2[0];
+							String temp2= String.format("%s\\%s", test[0], test2[1]);
+							pattern=Pattern.compile(temp2);
+						} else if (x != 0) {
+							if(x>1)
+								note+="-";
+							note += test[x];
+						}
+					}
 				}
+				Matcher m = pattern.matcher(memberName);
+				sb = new StringBuffer();
+				while(m.find()) {
+					sendNotification(memberName,note);
+				}
+				m.appendTail(sb);
 			}
-			m.appendTail(sb);
 		}
 	}
 
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event) {
-		if (event.getGroup().equals("ClanChatPlus")) {
+		if (event.getGroup().equals("Clan Chat Warnings")) {
 			this.updateWarners();
 		}
 	}
@@ -122,5 +136,13 @@ public class ClanChatWarningsPlugin extends Plugin{
 	ClanChatWarningsConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(ClanChatWarningsConfig.class);
+	}
+	@Subscribe
+	public void onWidgetLoaded(WidgetLoaded widget) {
+		if(widget.getGroupId()==94) {
+			System.out.println("Clan setup opened");
+			Widget[] clanNames = this.client.getWidget(94,0).getChildren();
+			System.out.println(clanNames.length);
+		}
 	}
 }

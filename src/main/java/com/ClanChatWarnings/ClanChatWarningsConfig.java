@@ -8,21 +8,33 @@ import net.runelite.client.config.ConfigItem;
 public interface ClanChatWarningsConfig extends Config
 {
 	@ConfigItem(
-			keyName = "warnedPlayers",
-			name = "Warn On Join",
-			description = "List of players you want to be warned when joining",
-			position = 1
+			keyName = "notifiedPlayers",
+			name = "Warn on join",
+			description = "List of players you want to be warned of on joining.\nSupports notes by adding '-' after name.",
+			position = 0
 	)
 	default String warnedPlayers() {
 		return "";
 	}
 	@ConfigItem(
-			keyName = "warnedAttention",
+			keyName = "warnedAndAlerted",
 			name = "Alert On Warning",
-			description = "Causes an alter when a player from warning list joins",
+			description = "Ping if player procs a warning",
+			position = 1
+	)
+	default boolean warnedAttention() { return true;}
+	@ConfigItem(
+			keyName = "Check on self join",
+			name = "Check on self join",
+			description = "Runs the check when you join cc.",
 			position = 2
 	)
-	default boolean warnedAttention() {
-		return false;
-	}
+	default boolean selfCheck() { return false;}
+	@ConfigItem(
+			keyName = "Ping on self join",
+			name = "Ping on self join",
+			description = "If \"Check on self join\" is enabled, will ping if players on the list are in cc when you join cc.",
+			position = 3
+	)
+	default boolean selfPing() { return false;}
 }
