@@ -32,6 +32,7 @@ public class ClanChatWarningsPlugin extends Plugin{
 	private final List<Pattern> warnings;
 	private final List<Pattern> warnPlayers;
 	private final List<Pattern> exemptPlayers;
+	private boolean hopping;
 	private int clanJoinedTick;
 	@Inject
 	private Client client;
@@ -109,7 +110,10 @@ public class ClanChatWarningsPlugin extends Plugin{
 
 	@Subscribe
 	public void onClanMemberJoined(ClanMemberJoined event){
-		if (this.clanJoinedTick != this.client.getTickCount()||this.config.selfCheck()) {
+		if (this.clanJoinedTick != this.client.getTickCount()){
+			hopping=false;
+		}
+		if ((this.clanJoinedTick != this.client.getTickCount()||this.config.selfCheck())&&!hopping) {
 			ClanMember member = event.getMember();
 			String memberName = Text.toJagexName(member.getName());
 			String memberName2 = Text.toJagexName(member.getName());
@@ -197,6 +201,13 @@ public class ClanChatWarningsPlugin extends Plugin{
 	public void onConfigChanged(ConfigChanged event) {
 		if (event.getGroup().equals("ClanChatPlus")) {
 			this.updateSets();
+		}
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged gameStateChanged) {
+		if(gameStateChanged.getGameState()==GameState.HOPPING){
+			hopping=true;
 		}
 	}
 
