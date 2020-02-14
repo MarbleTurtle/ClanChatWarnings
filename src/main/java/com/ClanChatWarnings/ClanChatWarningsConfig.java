@@ -8,33 +8,50 @@ import net.runelite.client.config.ConfigItem;
 public interface ClanChatWarningsConfig extends Config
 {
 	@ConfigItem(
-			keyName = "notifiedPlayers",
-			name = "Warn on join",
-			description = "List of players you want to be warned of on joining.\nSupports notes by adding '-' after name.",
+			keyName = "notifiedPlayer",
+			name = "Players warnings",
+			description = "List of players you want to be warned of on joining. Supports notes by adding '-' after name.",
 			position = 0
 	)
-	default String warnedPlayers() {
+	default String warnPlayers() {
 		return "";
 	}
+	@ConfigItem(
+			keyName = "notifiedMass",
+			name = "Regex warnings",
+			description = "Regex warnings for players joining Clan Chat. Supports notes by adding '-' after name.",
+			position = 1
+	)
+	default String warnings() {
+		return "";
+	}
+	@ConfigItem(
+			keyName = "exemptPlayers",
+			name = "Exempt Players",
+			description = "Players to be ignored when joining Clan Chat.",
+			position = 2
+	)
+	default String exemptPlayers() { return "";}
 	@ConfigItem(
 			keyName = "warnedAndAlerted",
 			name = "Alert On Warning",
 			description = "Ping if player procs a warning",
-			position = 1
+			position = 3
 	)
 	default boolean warnedAttention() { return true;}
 	@ConfigItem(
 			keyName = "Check on self join",
 			name = "Check on self join",
-			description = "Runs the check when you join cc.",
-			position = 2
+			description = "Runs the check when you join Clan Chat.",
+			position = 4
 	)
 	default boolean selfCheck() { return false;}
 	@ConfigItem(
 			keyName = "Ping on self join",
 			name = "Ping on self join",
-			description = "If \"Check on self join\" is enabled, will ping if players on the list are in cc when you join cc.",
-			position = 3
+			description = "If \"Check on self join\" is enabled, will ping if players on the list are in cc when you join Clan Chat.",
+			position = 5
 	)
 	default boolean selfPing() { return false;}
+
 }
