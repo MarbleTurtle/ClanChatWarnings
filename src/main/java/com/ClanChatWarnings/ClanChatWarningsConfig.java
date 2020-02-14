@@ -10,7 +10,7 @@ public interface ClanChatWarningsConfig extends Config
 	@ConfigItem(
 			keyName = "notifiedPlayer",
 			name = "Players warnings",
-			description = "List of players you want to be warned of on joining. Supports notes by adding '-' after name.",
+			description = "List of players you want to be warned of on joining. Supports notes by adding '-' after name. Separate with commas.",
 			position = 0
 	)
 	default String warnPlayers() {
@@ -19,7 +19,7 @@ public interface ClanChatWarningsConfig extends Config
 	@ConfigItem(
 			keyName = "notifiedMass",
 			name = "Regex warnings",
-			description = "Regex warnings for players joining Clan Chat. Supports notes by adding '-' after name.",
+			description = "Regex warnings for players joining Clan Chat. Supports notes by adding '-' after name. Separate with new lines.",
 			position = 1
 	)
 	default String warnings() {
@@ -35,7 +35,7 @@ public interface ClanChatWarningsConfig extends Config
 	@ConfigItem(
 			keyName = "warnedAndAlerted",
 			name = "Alert On Warning",
-			description = "Ping if player procs a warning",
+			description = "Ping if player procs a warning.",
 			position = 3
 	)
 	default boolean warnedAttention() { return true;}

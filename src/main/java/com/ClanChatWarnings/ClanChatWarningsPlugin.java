@@ -113,6 +113,9 @@ public class ClanChatWarningsPlugin extends Plugin{
 		if (this.clanJoinedTick != this.client.getTickCount()){
 			hopping=false;
 		}
+
+		//God have mercy on your soul if you're about to check how I did this.
+
 		if ((this.clanJoinedTick != this.client.getTickCount()||this.config.selfCheck())&&!hopping) {
 			ClanMember member = event.getMember();
 			String memberName = Text.toJagexName(member.getName());
@@ -130,6 +133,7 @@ public class ClanChatWarningsPlugin extends Plugin{
 				while(n.find()) {
 					return;
 				}
+				n.appendTail(sb);
 			}
 			for(Iterator var3 = this.warnings.iterator(); var3.hasNext(); memberName2 = sc.toString()) { //For checking the regex
 				Pattern pattern1 = (Pattern)var3.next();
@@ -180,13 +184,15 @@ public class ClanChatWarningsPlugin extends Plugin{
 							note += test[x];
 						}
 					}
+				}else{
+					System.out.println(test[0]);
 				}
-				temp2=test[0].substring(2);
+				temp2=test[0].substring(2,test[0].length()-2);
 				pattern3=Pattern.compile(temp2.toLowerCase());
 				Matcher l = pattern3.matcher(memberName3.toLowerCase());
 				sa = new StringBuffer();
+				System.out.println(temp2+","+memberName3);
 				while(l.find()) {
-					System.out.println(temp2+","+memberName3);
 					if(temp2.toLowerCase().equals(memberName3.toLowerCase())) {
 						sendNotification(Text.toJagexName(member.getName()), note);
 						break;
