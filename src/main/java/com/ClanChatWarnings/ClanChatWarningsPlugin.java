@@ -84,13 +84,9 @@ public class ClanChatWarningsPlugin extends Plugin{
 		}).filter(Objects::nonNull);
 		List var10003 = this.warnings;
 		var10002.forEach(var10003::add);
-		Stream var10004 = NEWLINE_SPLITTER.splitToList(this.config.exemptPlayers()).stream().map((s) -> {
-			try {
-				return Pattern.compile(s, 2);
-			} catch (PatternSyntaxException var2) {
-				return null;
-			}
-		}).filter(Objects::nonNull);
+		Stream var10004 = Text.fromCSV(this.config.exemptPlayers()).stream().map((s) -> {
+			return Pattern.compile(Pattern.quote(s), 2);
+		});
 		List var10005 = this.exemptPlayers;
 		var10004.forEach(var10005::add);
 	}
@@ -98,9 +94,9 @@ public class ClanChatWarningsPlugin extends Plugin{
 
 	private void sendNotification(String player,String Comment) {
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append(player).append(" has joined Clan Chat. ").append(Comment);
+		stringBuilder.append("has joined Clan Chat. ").append(Comment);
 		String notification = stringBuilder.toString();
-		this.client.addChatMessage(ChatMessageType.FRIENDSCHATNOTIFICATION, "", notification, "");
+		this.client.addChatMessage(ChatMessageType.FRIENDSCHAT, player, notification, this.client.getClanMemberManager().getClanChatName());
 		if(this.config.warnedAttention()) {
 			if (this.clanJoinedTick != this.client.getTickCount() || this.config.selfPing()) {
 				this.ping.notify(notification);
@@ -113,7 +109,6 @@ public class ClanChatWarningsPlugin extends Plugin{
 		if (this.clanJoinedTick != this.client.getTickCount()){
 			hopping=false;
 		}
-
 		//God have mercy on your soul if you're about to check how I did this.
 
 		if ((this.clanJoinedTick != this.client.getTickCount()||this.config.selfCheck())&&!hopping) {
@@ -131,7 +126,9 @@ public class ClanChatWarningsPlugin extends Plugin{
 				Matcher n = pattern.matcher(memberName.toLowerCase());
 				sb = new StringBuffer();
 				while(n.find()) {
-					return;
+					if(pattern.toString().substring(2,pattern.toString().length()-2).toLowerCase().equals(memberName.toLowerCase())) {
+						return;
+					}
 				}
 				n.appendTail(sb);
 			}
@@ -184,10 +181,15 @@ public class ClanChatWarningsPlugin extends Plugin{
 							note += test[x];
 						}
 					}
+				}
+				if(test.length==1) {
+					System.out.println(test[0]);
+					temp2 = test[0].substring(2, test[0].length()-2);
+					temp2=temp2.trim();
 				}else{
 					System.out.println(test[0]);
+					temp2 = test[0].substring(2, test[0].trim().length());
 				}
-				temp2=test[0].substring(2,test[0].length()-2);
 				pattern3=Pattern.compile(temp2.toLowerCase());
 				Matcher l = pattern3.matcher(memberName3.toLowerCase());
 				sa = new StringBuffer();
@@ -228,14 +230,5 @@ public class ClanChatWarningsPlugin extends Plugin{
 	ClanChatWarningsConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(ClanChatWarningsConfig.class);
-	}
-
-	@Subscribe
-	public void onWidgetLoaded(WidgetLoaded widget) {
-		if(widget.getGroupId()==94) {
-			System.out.println("Clan setup opened");
-			Widget[] clanNames = this.client.getWidget(94,0).getChildren();
-			System.out.println(clanNames.length);
-		}
 	}
 }
