@@ -57,7 +57,7 @@ public interface ClanChatWarningsConfig extends Config
 			keyName = "Kicks",
 			name = "Kick from warning",
 			description = "Changes message to support kicking players from warning.",
-			position = 5
+			position = 6
 	)
 	default boolean kickable() { return false;}
 }
