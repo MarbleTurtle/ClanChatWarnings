@@ -53,5 +53,11 @@ public interface ClanChatWarningsConfig extends Config
 			position = 5
 	)
 	default boolean selfPing() { return false;}
-
+	@ConfigItem(
+			keyName = "Kicks",
+			name = "Kick from warning",
+			description = "Changes message to support kicking players from warning.",
+			position = 5
+	)
+	default boolean kickable() { return false;}
 }
