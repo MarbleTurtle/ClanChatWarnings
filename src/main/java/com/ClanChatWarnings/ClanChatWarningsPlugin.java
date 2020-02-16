@@ -187,17 +187,14 @@ public class ClanChatWarningsPlugin extends Plugin{
 					}
 				}
 				if(test.length==1) {
-					System.out.println(test[0]);
 					temp2 = test[0].substring(2, test[0].length()-2);
 					temp2=temp2.trim();
 				}else{
-					System.out.println(test[0]);
 					temp2 = test[0].substring(2, test[0].trim().length());
 				}
 				pattern3=Pattern.compile(temp2.toLowerCase());
 				Matcher l = pattern3.matcher(memberName3.toLowerCase());
 				sa = new StringBuffer();
-				System.out.println(temp2+","+memberName3);
 				while(l.find()) {
 					if(temp2.toLowerCase().equals(memberName3.toLowerCase())) {
 						sendNotification(Text.toJagexName(member.getName()), note);
