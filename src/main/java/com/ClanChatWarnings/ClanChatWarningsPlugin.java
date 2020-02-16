@@ -113,95 +113,98 @@ public class ClanChatWarningsPlugin extends Plugin{
 		if (this.clanJoinedTick != this.client.getTickCount()){
 			hopping=false;
 		}
+
 		//God have mercy on your soul if you're about to check how I did this.
 
 		if ((this.clanJoinedTick != this.client.getTickCount()||this.config.selfCheck())&&!hopping) {
 			ClanMember member = event.getMember();
-			String memberName = Text.toJagexName(member.getName());
-			String memberName2 = Text.toJagexName(member.getName());
-			String memberName3 = Text.toJagexName(member.getName());
-			StringBuffer sb;
-			StringBuffer sc;
-			StringBuffer sa;
-			if(memberName.equalsIgnoreCase(Text.toJagexName(this.client.getLocalPlayer().getName())))
+			String memberNameX = Text.toJagexName(member.getName());
+			String memberNameP = Text.toJagexName(member.getName());
+			String memberNameR = Text.toJagexName(member.getName());
+			StringBuffer sx;
+			StringBuffer sp;
+			StringBuffer sr;
+			if(memberNameX.equalsIgnoreCase(Text.toJagexName(this.client.getLocalPlayer().getName())))
 				return;
-			for(Iterator var2 = this.exemptPlayers.iterator(); var2.hasNext(); memberName = sb.toString()) { //For exempting people from being pinged
+			for(Iterator var2 = this.exemptPlayers.iterator(); var2.hasNext(); memberNameX = sx.toString()) { //For exempting people from being pinged
 				Pattern pattern = (Pattern) var2.next();
-				Matcher n = pattern.matcher(memberName.toLowerCase());
-				sb = new StringBuffer();
-				while(n.find()) {
-					if(pattern.toString().substring(2,pattern.toString().length()-2).toLowerCase().equals(memberName.toLowerCase())) {
+				Matcher n = pattern.matcher(memberNameX.toLowerCase());
+				sx = new StringBuffer();
+				while(n.matches()) {
+					if(pattern.toString().substring(2,pattern.toString().length()-2).toLowerCase().equals(memberNameX.toLowerCase())) {
 						return;
 					}
 				}
-				n.appendTail(sb);
+				n.appendTail(sx);
 			}
-			for(Iterator var3 = this.warnings.iterator(); var3.hasNext(); memberName2 = sc.toString()) { //For checking the regex
-				Pattern pattern1 = (Pattern)var3.next();
-				Pattern pattern2=Pattern.compile("-");
-				String temp= "\\\\";
-				String test[]=pattern2.split(pattern1.toString());
+			for(Iterator var4 = this.warnPlayers.iterator(); var4.hasNext(); memberNameP = sp.toString()) { //For checking specific players
+				Pattern pattern = (Pattern)var4.next();
+				Pattern patternDiv=Pattern.compile("~");
+				//Yes Im aware this String is dumb, frankly I spent 20 mins trying to fix it and this is what worked so it stays.
+				String slash= "\\\\";
+				String sections[]=patternDiv.split(pattern.toString());
 				String note="";
-				if(test.length>1) {
-					for (Integer x = 0; x < test.length; x++) {
-						if (x == test.length - 1) {
-							String test2[] = test[x].split(temp);
+				String nameP="";
+				if(sections.length>1) {
+					for (Integer x = 0; x < sections.length; x++) {
+						if (x == sections.length - 1) {
+							String notes[] = sections[x].split(slash);
 							if(x>1)
 								note+="-";
-							note += test2[0];
-							pattern1=Pattern.compile(test[0].trim().toLowerCase());
+							note += notes[0];
 						} else if (x != 0) {
 							if(x>1)
 								note+="-";
-							note += test[x];
+							note += sections[x];
 						}
 					}
 				}
-				Matcher m = pattern1.matcher(memberName2.toLowerCase());
-				sc = new StringBuffer();
-				while(m.find()) {
-					sendNotification(Text.toJagexName(member.getName()),note);
-					break;
-				}
-				m.appendTail(sc);
-			}
-			for(Iterator var4 = this.warnPlayers.iterator(); var4.hasNext(); memberName3 = sa.toString()) { //For checking specific players
-				Pattern pattern3 = (Pattern)var4.next();
-				Pattern pattern4=Pattern.compile("-");
-				String temp= "\\\\";
-				String test[]=pattern4.split(pattern3.toString());
-				String note="";
-				String temp2="";
-				if(test.length>1) {
-					for (Integer x = 0; x < test.length; x++) {
-						if (x == test.length - 1) {
-							String test2[] = test[x].split(temp);
-							if(x>1)
-								note+="-";
-							note += test2[0];
-						} else if (x != 0) {
-							if(x>1)
-								note+="-";
-							note += test[x];
-						}
-					}
-				}
-				if(test.length==1) {
-					temp2 = test[0].substring(2, test[0].length()-2);
-					temp2=temp2.trim();
+				if(sections.length==1) {
+					nameP = sections[0].substring(2, sections[0].length()-2);
+					nameP=nameP.trim();
 				}else{
-					temp2 = test[0].substring(2, test[0].trim().length());
+					nameP = sections[0].substring(2, sections[0].trim().length());
 				}
-				pattern3=Pattern.compile(temp2.toLowerCase());
-				Matcher l = pattern3.matcher(memberName3.toLowerCase());
-				sa = new StringBuffer();
-				while(l.find()) {
-					if(temp2.toLowerCase().equals(memberName3.toLowerCase())) {
+				pattern=Pattern.compile(nameP.toLowerCase());
+				Matcher l = pattern.matcher(memberNameP.toLowerCase());
+				sp = new StringBuffer();
+				while(l.matches()) {
+					if(nameP.toLowerCase().equals(memberNameP.toLowerCase())) {
 						sendNotification(Text.toJagexName(member.getName()), note);
 						break;
 					}
 				}
-				l.appendTail(sa);
+				l.appendTail(sp);
+			}
+			for(Iterator var3 = this.warnings.iterator(); var3.hasNext(); memberNameR = sr.toString()) { //For checking the regex
+				Pattern pattern = (Pattern)var3.next();
+				Pattern patternDiv=Pattern.compile("~");
+				//Yes Im aware this String is dumb, frankly I spent 20 mins trying to fix it and this is what worked so it stays.
+				String slash= "\\\\";
+				String sections[]=patternDiv.split(pattern.toString());
+				String note="";
+				if(sections.length>1) {
+					for (Integer x = 0; x < sections.length; x++) {
+						if (x == sections.length - 1) {
+							String notes[] = sections[x].split(slash);
+							if(x>1)
+								note+="-";
+							note += notes[0];
+							pattern=Pattern.compile(sections[0].trim().toLowerCase());
+						} else if (x != 0) {
+							if(x>1)
+								note+="-";
+							note += sections[x];
+						}
+					}
+				}
+				Matcher m = pattern.matcher(memberNameR.toLowerCase());
+				sr = new StringBuffer();
+				while(m.find()) {
+					sendNotification(Text.toJagexName(member.getName()),note);
+					break;
+				}
+				m.appendTail(sr);
 			}
 		}
 	}
