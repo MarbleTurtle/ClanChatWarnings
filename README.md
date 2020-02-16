@@ -2,11 +2,47 @@
 
 Notifies you when players (either by specific name or by regex) join clan chat. Supports adding notes to signal why you put them on the watchlist, primarily aimed at being used as a warning system against spam, can be used for telling you when X player joins and you need to get your collat back.
 
-Player Warnings-
-Will only alert you if names matches one on the list, seperate with commas.
 
-Regex Warnings-
-Alerts you if someone matches the regex provided, seperate with new lines. Note having plain names here may result in false positives.
+**Player Warnings**-Will only alert you if names matches one on the list, seperate with commas.
 
-Exempt Players-
-Will not notify you if a player would otherwise trigger an alert, seperate with commas.
+Example
+
+JimBob~\*Scammer\*, Jimbo, Greg~He knows what he did.
+
+You will be notified:
+
+Jimbob has joined Clan chat. \*Scammer\*
+
+Jimbo has joined Clan chat.
+
+Greg has joined Clan chat. He knows what he did.
+
+You will not be notified if Meg then joins cc
+
+
+**Regex Warnings**-Alerts you if someone matches the regex provided, seperate with new lines. Note having plain names here may result in false positives.
+
+Example-
+
+^Jim~Known raiding clan,eg$~He knows what he did.,Bob-Another Bob bro
+
+^Jim catches anyone with Jim at the start of their name which can be useful for catching members of a clan. eg$ will catch anyone with eg at the end of their name which can be useful for catching alts.Bob will catch anyone with the name Bob in their name. In Jimbob's case it will prioritize ^Jim as its first in the list. 
+
+You will be notified:
+
+Jimbob has joined Clan chat. Known raiding clan
+
+Jimbo has joined Clan chat. Known raiding clan
+
+Greg has joined Clan chat. He knows what he did.
+
+Meg has joined Clan chat. He knows what he did.
+
+
+**Exempt Players**-Will not notify you if a player would otherwise trigger an alert, seperate with commas.
+
+This one is self explanatory and is used to help alleviate some of the rules youd need to do with the regex to not be notified of known good partys, in this case Meg, who has no relation to Greg.
+
+**Other settings**
+
+Alert On Warning will send a notification to grab your attention, Check on self join will run the check when you are joining a cc, it will not run this check if you are joining back from hopping however, Ping on self join will ping you if someone is caught from the Check on self join, Kick from warning changes message format to be less readable but allows to kick the player without finding them in clan list.
