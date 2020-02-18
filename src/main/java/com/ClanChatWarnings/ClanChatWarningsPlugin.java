@@ -147,6 +147,13 @@ public class ClanChatWarningsPlugin extends Plugin{
 							}
 						}
 					}
+				}else if(chatMessage.getMessage().contains(this.config.trackerDismiss())){
+					for(int i=0; i<trackName.size(); i++){
+						if(chatMessage.getMessage().toLowerCase().contains(trackName.get(i).toLowerCase())){
+							trackName.remove(i);
+							trackTimer.remove(i);
+						}
+					}
 				}
 			}
 		}

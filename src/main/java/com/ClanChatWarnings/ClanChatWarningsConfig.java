@@ -82,17 +82,24 @@ public interface ClanChatWarningsConfig extends Config
 	)
 	default String trackerTrigger() { return "Hi";}
 	@ConfigItem(
+			keyName = "Tracker Dismisser",
+			name = "Stop Tracking Keyword",
+			description = "Keyword to trigger stop tracking of a player.",
+			position = 10
+	)
+	default String trackerDismiss() { return "Bye";}
+	@ConfigItem(
 			keyName = "Tracker Length",
 			name = "Tracker Length",
 			description = "How long to track a Player, in seconds.",
-			position = 10
+			position = 11
 	)
 	default int trackerLength() { return 30;}
 	@ConfigItem(
 			keyName = "Tracker Ping",
 			name = "Ping on Tracked Leave",
 			description = "Sends a ping if a tracked player leaves.",
-			position = 11
+			position = 12
 	)
 	default boolean trackerPing() { return false;}
 }
