@@ -43,6 +43,10 @@ Meg has joined Clan chat. He knows what he did.
 
 This one is self explanatory and is used to help alleviate some of the rules youd need to do with the regex to not be notified of known good partys, in this case you'd want to add Meg, who has no relation to Greg.
 
-**Other settings**
+**Other Warning settings**
 
 Alert On Warning will send a notification to grab your attention, Check on self join will run the check when you are joining a cc, it will not run this check if you are joining back from hopping however, Ping on self join will ping you if someone is caught from the Check on self join, Kick from warning changes message format to be less readable but allows to kick the player without finding them in clan list.
+
+**Tracker Settings**
+
+Tracker will enable the tracker. Tracker Keyword is what triggers the tracker to look for player names, if multiple names are found it will track each one seperately, similarly Stop Tracking Keyword will stop tracking any players, Tracker Length is how long until you wont be notified that they leave, and Tracker Ping is if the notification will also alert you. 
