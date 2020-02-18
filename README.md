@@ -41,7 +41,7 @@ Meg has joined Clan chat. He knows what he did.
 
 **Exempt Players**-Will not notify you if a player would otherwise trigger an alert, seperate with commas.
 
-This one is self explanatory and is used to help alleviate some of the rules youd need to do with the regex to not be notified of known good partys, in this case Meg, who has no relation to Greg.
+This one is self explanatory and is used to help alleviate some of the rules youd need to do with the regex to not be notified of known good partys, in this case you'd want to add Meg, who has no relation to Greg.
 
 **Other settings**
 
