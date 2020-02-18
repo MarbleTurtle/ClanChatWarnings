@@ -5,7 +5,7 @@ Notifies you when players (either by specific name or by regex) join clan chat. 
 
 **Player Warnings**-Will only alert you if names matches one on the list, seperate with commas.
 
-Example
+Example-
 
 JimBob~\*Scammer\*, Jimbo, Greg~He knows what he did.
 
