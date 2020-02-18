@@ -7,7 +7,6 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.*;
-import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -32,6 +31,8 @@ public class ClanChatWarningsPlugin extends Plugin{
 	private final List<Pattern> warnings;
 	private final List<Pattern> warnPlayers;
 	private final List<Pattern> exemptPlayers;
+	private final List<Integer> coolTimer;
+	private final List<String> coolName;
 	private boolean hopping;
 	private int clanJoinedTick;
 	@Inject
@@ -44,11 +45,11 @@ public class ClanChatWarningsPlugin extends Plugin{
 	private ClanChatWarningsConfig config;
 
 	public ClanChatWarningsPlugin() {
-
 		this.warnings = new ArrayList();
 		this.exemptPlayers = new ArrayList();
 		this.warnPlayers= new ArrayList();
-
+		this.coolTimer = new ArrayList();
+		this.coolName= new ArrayList();
 	}
 
 	@Override
@@ -63,6 +64,8 @@ public class ClanChatWarningsPlugin extends Plugin{
 		this.warnings.clear();
 		this.exemptPlayers.clear();
 		this.warnPlayers.clear();
+		this.coolTimer.clear();
+		this.coolName.clear();
 	}
 
 	void updateSets() {
@@ -126,6 +129,8 @@ public class ClanChatWarningsPlugin extends Plugin{
 			StringBuffer sr;
 			if(memberNameX.equalsIgnoreCase(Text.toJagexName(this.client.getLocalPlayer().getName())))
 				return;
+			if(coolName.contains(member.getName()))
+				return;
 			for(Iterator var2 = this.exemptPlayers.iterator(); var2.hasNext(); memberNameX = sx.toString()) { //For exempting people from being pinged
 				Pattern pattern = (Pattern) var2.next();
 				Matcher n = pattern.matcher(memberNameX.toLowerCase());
@@ -150,11 +155,11 @@ public class ClanChatWarningsPlugin extends Plugin{
 						if (x == sections.length - 1) {
 							String notes[] = sections[x].split(slash);
 							if(x>1)
-								note+="-";
+								note+="~";
 							note += notes[0];
 						} else if (x != 0) {
 							if(x>1)
-								note+="-";
+								note+="~";
 							note += sections[x];
 						}
 					}
@@ -171,6 +176,10 @@ public class ClanChatWarningsPlugin extends Plugin{
 				while(l.matches()) {
 					if(nameP.toLowerCase().equals(memberNameP.toLowerCase())) {
 						sendNotification(Text.toJagexName(member.getName()), note);
+						if(this.config.cooldown()>0) {
+							coolName.add(Text.toJagexName(member.getName()));
+							coolTimer.add((int)(this.config.cooldown()/.6));
+						}
 						break;
 					}
 				}
@@ -188,12 +197,12 @@ public class ClanChatWarningsPlugin extends Plugin{
 						if (x == sections.length - 1) {
 							String notes[] = sections[x].split(slash);
 							if(x>1)
-								note+="-";
+								note+="~";
 							note += notes[0];
 							pattern=Pattern.compile(sections[0].trim().toLowerCase());
 						} else if (x != 0) {
 							if(x>1)
-								note+="-";
+								note+="~";
 							note += sections[x];
 						}
 					}
@@ -202,6 +211,10 @@ public class ClanChatWarningsPlugin extends Plugin{
 				sr = new StringBuffer();
 				while(m.find()) {
 					sendNotification(Text.toJagexName(member.getName()),note);
+					if(this.config.cooldown()>0) {
+						coolName.add(Text.toJagexName(member.getName()));
+						coolTimer.add((int)(this.config.cooldown()/.6));
+					}
 					break;
 				}
 				m.appendTail(sr);
@@ -209,6 +222,19 @@ public class ClanChatWarningsPlugin extends Plugin{
 		}
 	}
 
+	@Subscribe
+	public void onGameTick(GameTick event) {
+		if(this.config.cooldown()>0){
+			for(int i=0; i<coolTimer.size(); i++){
+				if (coolTimer.get(i) > 0){
+					coolTimer.set(i, coolTimer.get(i) - 1);
+				}else{
+					coolTimer.remove(i);
+					coolName.remove(i);
+				}
+			}
+		}
+	}
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event) {
 		if (event.getGroup().equals("ClanChatPlus")) {

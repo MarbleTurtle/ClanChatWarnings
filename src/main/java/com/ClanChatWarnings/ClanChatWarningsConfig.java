@@ -33,31 +33,38 @@ public interface ClanChatWarningsConfig extends Config
 	)
 	default String exemptPlayers() { return "";}
 	@ConfigItem(
+			keyName = "cooldown",
+			name = "Cooldown",
+			description = "Cooldown, in seconds, before you will be notified of a player joining again.",
+			position = 3
+	)
+	default int cooldown() { return 30;}
+	@ConfigItem(
 			keyName = "warnedAndAlerted",
 			name = "Alert On Warning",
 			description = "Ping if player procs a warning.",
-			position = 3
+			position = 4
 	)
 	default boolean warnedAttention() { return true;}
 	@ConfigItem(
 			keyName = "Check on self join",
 			name = "Check on self join",
 			description = "Runs the check when you join Clan Chat.",
-			position = 4
+			position = 5
 	)
 	default boolean selfCheck() { return false;}
 	@ConfigItem(
 			keyName = "Ping on self join",
 			name = "Ping on self join",
 			description = "If \"Check on self join\" is enabled, will ping if players on the list are in cc when you join Clan Chat.",
-			position = 5
+			position = 6
 	)
 	default boolean selfPing() { return false;}
 	@ConfigItem(
 			keyName = "Kicks",
 			name = "Kick from warning",
 			description = "Changes message to support kicking players from warning.",
-			position = 6
+			position = 7
 	)
 	default boolean kickable() { return false;}
 }
