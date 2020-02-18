@@ -67,4 +67,32 @@ public interface ClanChatWarningsConfig extends Config
 			position = 7
 	)
 	default boolean kickable() { return false;}
+	@ConfigItem(
+			keyName = "Tracker",
+			name = "Track mentioned players",
+			description = "Tracks, and notifies via chat message, when player leaves Clan Chat after saying \"Tracker Keyword\".",
+			position = 8
+	)
+	default boolean track() { return false;}
+	@ConfigItem(
+			keyName = "Tracker Keyword",
+			name = "Tracker Keyword",
+			description = "Keyword to trigger tracking of a player.",
+			position = 9
+	)
+	default String trackerTrigger() { return "Hi";}
+	@ConfigItem(
+			keyName = "Tracker Length",
+			name = "Tracker Length",
+			description = "How long to track a Player, in seconds.",
+			position = 10
+	)
+	default int trackerLength() { return 30;}
+	@ConfigItem(
+			keyName = "Tracker Ping",
+			name = "Ping on Tracked Leave",
+			description = "Sends a ping if a tracked player leaves.",
+			position = 11
+	)
+	default boolean trackerPing() { return false;}
 }

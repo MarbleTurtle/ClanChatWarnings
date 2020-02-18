@@ -10,6 +10,7 @@ import net.runelite.api.events.*;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.game.ClanManager;
 import net.runelite.client.menus.MenuManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -33,6 +34,9 @@ public class ClanChatWarningsPlugin extends Plugin{
 	private final List<Pattern> exemptPlayers;
 	private final List<Integer> coolTimer;
 	private final List<String> coolName;
+	private final List<Integer> trackTimer;
+	private final List<String> trackName;
+	private final List<String> clansName;
 	private boolean hopping;
 	private int clanJoinedTick;
 	@Inject
@@ -43,6 +47,8 @@ public class ClanChatWarningsPlugin extends Plugin{
 	private MenuManager menuManager;
 	@Inject
 	private ClanChatWarningsConfig config;
+	@Inject
+	private ClanManager clanManager;
 
 	public ClanChatWarningsPlugin() {
 		this.warnings = new ArrayList();
@@ -50,6 +56,9 @@ public class ClanChatWarningsPlugin extends Plugin{
 		this.warnPlayers= new ArrayList();
 		this.coolTimer = new ArrayList();
 		this.coolName= new ArrayList();
+		this.trackTimer = new ArrayList();
+		this.trackName= new ArrayList();
+		this.clansName= new ArrayList();
 	}
 
 	@Override
@@ -66,6 +75,9 @@ public class ClanChatWarningsPlugin extends Plugin{
 		this.warnPlayers.clear();
 		this.coolTimer.clear();
 		this.coolName.clear();
+		this.trackTimer.clear();
+		this.trackName.clear();
+		this.clansName.clear();
 	}
 
 	void updateSets() {
@@ -95,30 +107,73 @@ public class ClanChatWarningsPlugin extends Plugin{
 	}
 
 
-	private void sendNotification(String player,String Comment) {
+	private void sendNotification(String player,String Comment,int type) {
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("has joined Clan Chat. ").append(Comment);
-		String notification = stringBuilder.toString();
-		if(this.config.kickable()) {
-			this.client.addChatMessage(ChatMessageType.FRIENDSCHAT, player, notification, "Warning");
-		}else{
-			this.client.addChatMessage(ChatMessageType.FRIENDSCHATNOTIFICATION,"",player+" "+notification,"");
-		}
-		if(this.config.warnedAttention()) {
-			if (this.clanJoinedTick != this.client.getTickCount() || this.config.selfPing()) {
-				this.ping.notify(notification);
+		if(type==1) {
+			stringBuilder.append("has joined Clan Chat. ").append(Comment);
+			String notification = stringBuilder.toString();
+			if (this.config.kickable()) {
+				this.client.addChatMessage(ChatMessageType.FRIENDSCHAT, player, notification, "Warning");
+			} else {
+				this.client.addChatMessage(ChatMessageType.FRIENDSCHATNOTIFICATION, "", player + " " + notification, "");
+			}
+			if (this.config.warnedAttention()) {
+				if (this.clanJoinedTick != this.client.getTickCount() || this.config.selfPing()) {
+					this.ping.notify(player+" "+notification);
+				}
+			}
+		}else if(type==2){
+			stringBuilder.append(" has left Clan Chat.");
+			String notification = stringBuilder.toString();
+			this.client.addChatMessage(ChatMessageType.FRIENDSCHATNOTIFICATION, "", player + " " + notification, "");
+			if(this.config.trackerPing()) {
+				this.ping.notify(player+" "+notification);
 			}
 		}
 	}
 
 	@Subscribe
+	public void onChatMessage(ChatMessage chatMessage) {
+		if(chatMessage.getType()==ChatMessageType.FRIENDSCHAT&&this.config.track()) {
+			if (chatMessage.getName().equals(this.client.getLocalPlayer().getName())) {
+				if (chatMessage.getMessage().contains(this.config.trackerTrigger())) {
+					for (String name : clansName) {
+						if (chatMessage.getMessage().toLowerCase().contains(name.toLowerCase())) {
+							if(trackName.contains(name.toLowerCase())){
+								trackTimer.set(trackName.indexOf(name.toLowerCase()), (int) (this.config.trackerLength() / .6));
+							}else {
+								trackName.add(name.toLowerCase());
+								trackTimer.add((int) (this.config.trackerLength() / .6));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	@Subscribe
+	public void onClanMemberLeft(ClanMemberLeft event){
+		String name=event.getMember().getName();
+		if(trackName.contains(name.toLowerCase())){
+			sendNotification(Text.toJagexName(name),"",2);
+			trackTimer.remove(trackName.indexOf(name.toLowerCase()));
+			trackName.remove(name.toLowerCase());
+		}
+		if (clansName.contains(name)){
+			clansName.remove(name);
+		}
+	}
+
+	@Subscribe
 	public void onClanMemberJoined(ClanMemberJoined event){
+		if(this.config.track()){
+			clansName.add(event.getMember().getName());
+		}
 		if (this.clanJoinedTick != this.client.getTickCount()){
 			hopping=false;
 		}
-
 		//God have mercy on your soul if you're about to check how I did this.
-
 		if ((this.clanJoinedTick != this.client.getTickCount()||this.config.selfCheck())&&!hopping) {
 			ClanMember member = event.getMember();
 			String memberNameX = Text.toJagexName(member.getName());
@@ -175,7 +230,7 @@ public class ClanChatWarningsPlugin extends Plugin{
 				sp = new StringBuffer();
 				while(l.matches()) {
 					if(nameP.toLowerCase().equals(memberNameP.toLowerCase())) {
-						sendNotification(Text.toJagexName(member.getName()), note);
+						sendNotification(Text.toJagexName(member.getName()), note,1);
 						if(this.config.cooldown()>0) {
 							coolName.add(Text.toJagexName(member.getName()));
 							coolTimer.add((int)(this.config.cooldown()/.6));
@@ -210,7 +265,7 @@ public class ClanChatWarningsPlugin extends Plugin{
 				Matcher m = pattern.matcher(memberNameR.toLowerCase());
 				sr = new StringBuffer();
 				while(m.find()) {
-					sendNotification(Text.toJagexName(member.getName()),note);
+					sendNotification(Text.toJagexName(member.getName()),note,1);
 					if(this.config.cooldown()>0) {
 						coolName.add(Text.toJagexName(member.getName()));
 						coolTimer.add((int)(this.config.cooldown()/.6));
@@ -231,6 +286,16 @@ public class ClanChatWarningsPlugin extends Plugin{
 				}else{
 					coolTimer.remove(i);
 					coolName.remove(i);
+				}
+			}
+		}
+		if(!trackName.isEmpty()){
+			for(int i=0; i<trackTimer.size(); i++){
+				if (trackTimer.get(i) > 0){
+					trackTimer.set(i, trackTimer.get(i) - 1);
+				}else{
+					trackTimer.remove(i);
+					trackName.remove(i);
 				}
 			}
 		}
