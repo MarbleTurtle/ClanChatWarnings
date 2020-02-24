@@ -1,12 +1,15 @@
 package com.ClanChatWarnings;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ObjectArrays;
 import com.google.inject.Provides;
 import javax.inject.Inject;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.*;
+import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -16,6 +19,8 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.util.Text;
 import net.runelite.client.Notifier;
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -29,6 +34,7 @@ import java.util.stream.Stream;
 )
 public class ClanChatWarningsPlugin extends Plugin{
 	private static final Splitter NEWLINE_SPLITTER = Splitter.on("\n").omitEmptyStrings().trimResults();
+	private static final ImmutableList<String> AFTER_OPTIONS = ImmutableList.of("Message", "Add ignore", "Remove friend", "Kick");
 	private final List<Pattern> warnings;
 	private final List<Pattern> warnPlayers;
 	private final List<Pattern> exemptPlayers;
@@ -80,6 +86,51 @@ public class ClanChatWarningsPlugin extends Plugin{
 		this.clansName.clear();
 	}
 
+	@Subscribe
+	public void onMenuEntryAdded(MenuEntryAdded event) {
+		//If you or someone you love is able to figure out how to only have this enabled for clan and private chat, hit a Turtle up.
+		if (true&&this.config.track()) {
+			int groupId = WidgetInfo.TO_GROUP(event.getActionParam1());
+			String option = event.getOption();
+			if (groupId == WidgetInfo.CHATBOX.getGroupId() && !"Kick".equals(option) || groupId == WidgetInfo.PRIVATE_CHAT_MESSAGE.getGroupId()) {
+				if (!AFTER_OPTIONS.contains(option)) {
+					return;
+				}
+				MenuEntry track = new MenuEntry();
+				track.setOption("Track Player");
+				track.setTarget(event.getTarget());
+				track.setType(MenuAction.RUNELITE.getId());
+				track.setParam0(event.getActionParam0());
+				track.setParam1(event.getActionParam1());
+				track.setIdentifier(event.getIdentifier());
+				this.insertMenuEntry(track, this.client.getMenuEntries());
+			}
+		}
+	}
+
+	private void insertMenuEntry(MenuEntry newEntry, MenuEntry[] entries) {
+		MenuEntry[] newMenu = (MenuEntry[]) ObjectArrays.concat(entries, newEntry);
+		int menuEntryCount = newMenu.length;
+		ArrayUtils.swap(newMenu, menuEntryCount - 1, menuEntryCount - 2);
+		this.client.setMenuEntries(newMenu);
+	}
+
+	@Subscribe
+	public void onPlayerMenuOptionClicked(PlayerMenuOptionClicked event) {
+		if (event.getMenuOption().equals("Track Player")) {
+			for (String name : clansName) {
+				if (event.getMenuTarget().toLowerCase().contains(name.toLowerCase())) {
+					if (trackName.contains(name.toLowerCase())) {
+						trackTimer.set(trackName.indexOf(name.toLowerCase()), (int) (this.config.trackerLength() / .6));
+					} else {
+						trackName.add(name.toLowerCase());
+						trackTimer.add((int) (this.config.trackerLength() / .6));
+					}
+				}
+			}
+		}
+	}
+
 	void updateSets() {
 		this.warnings.clear();
 		this.exemptPlayers.clear();
@@ -128,33 +179,6 @@ public class ClanChatWarningsPlugin extends Plugin{
 			this.client.addChatMessage(ChatMessageType.FRIENDSCHATNOTIFICATION, "", player + " " + notification, "");
 			if(this.config.trackerPing()) {
 				this.ping.notify(player+" "+notification);
-			}
-		}
-	}
-
-	@Subscribe
-	public void onChatMessage(ChatMessage chatMessage) {
-		if(chatMessage.getType()==ChatMessageType.FRIENDSCHAT&&this.config.track()) {
-			if (chatMessage.getName().equals(this.client.getLocalPlayer().getName())) {
-				if (chatMessage.getMessage().contains(this.config.trackerTrigger())) {
-					for (String name : clansName) {
-						if (chatMessage.getMessage().toLowerCase().contains(name.toLowerCase())) {
-							if(trackName.contains(name.toLowerCase())){
-								trackTimer.set(trackName.indexOf(name.toLowerCase()), (int) (this.config.trackerLength() / .6));
-							}else {
-								trackName.add(name.toLowerCase());
-								trackTimer.add((int) (this.config.trackerLength() / .6));
-							}
-						}
-					}
-				}else if(chatMessage.getMessage().contains(this.config.trackerDismiss())){
-					for(int i=0; i<trackName.size(); i++){
-						if(chatMessage.getMessage().toLowerCase().contains(trackName.get(i).toLowerCase())){
-							trackName.remove(i);
-							trackTimer.remove(i);
-						}
-					}
-				}
 			}
 		}
 	}
