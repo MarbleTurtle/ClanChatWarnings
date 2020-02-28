@@ -291,7 +291,7 @@ public class ClanChatWarningsPlugin extends Plugin
 		for (final Map.Entry<Pattern, String> entry : warnings.entrySet())
 		{
 			final Matcher m = entry.getKey().matcher(username);
-			if (m.matches())
+			if (m.find())
 			{
 				return entry.getValue();
 			}
