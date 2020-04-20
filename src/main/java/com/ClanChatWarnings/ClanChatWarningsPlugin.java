@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @PluginDescriptor(
@@ -122,20 +123,19 @@ public class ClanChatWarningsPlugin extends Plugin {
         this.warnings.clear();
         this.exemptPlayers.clear();
         this.warnPlayers.clear();
-
         warnings.putAll(NEWLINE_SPLITTER.splitToList(this.config.warnings()).stream()
                 .map((s) -> s.toLowerCase().split(MESSAGE_DELIMITER))
                 .collect(Collectors.toMap(p -> Pattern.compile(p[0].trim(), Pattern.CASE_INSENSITIVE), p -> p.length > 1 ? p[1].trim() : ""))
         );
-
         exemptPlayers.addAll(Text.fromCSV(this.config.exemptPlayers()).stream()
                 .map((s) -> s.toLowerCase().trim())
                 .collect(Collectors.toSet())
         );
 
+
         warnPlayers.putAll(Text.fromCSV(this.config.warnPlayers()).stream()
                 .map((s) -> s.toLowerCase().split(MESSAGE_DELIMITER))
-                .collect(Collectors.toMap(p -> p[0].trim(), p -> p.length > 1 ? p[1].trim() : ""))
+                .collect(Collectors.toMap(p -> p[0].trim(), p -> p.length > 1 ? p[1].trim() : "",(p1,p2)->p1))
         );
     }
 
