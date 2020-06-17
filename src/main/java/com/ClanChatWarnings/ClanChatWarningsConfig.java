@@ -19,7 +19,7 @@ public interface ClanChatWarningsConfig extends Config
 	@ConfigItem(
 			keyName = "notifiedMass",
 			name = "Regex Warnings",
-			description = "Regex warnings for players joining Clan Chat. Supports notes by adding '~' after name. Separate with new lines.",
+			description = "Regex warnings for players joining Friends Chat. Supports notes by adding '~' after name. Separate with new lines.",
 			position = 1
 	)
 	default String warnings() {
@@ -28,7 +28,7 @@ public interface ClanChatWarningsConfig extends Config
 	@ConfigItem(
 			keyName = "exemptPlayers",
 			name = "Exempt Players",
-			description = "Players to be ignored when joining Clan Chat.",
+			description = "Players to be ignored when joining Friends Chat.",
 			position = 2
 	)
 	default String exemptPlayers() { return "";}
@@ -49,14 +49,14 @@ public interface ClanChatWarningsConfig extends Config
 	@ConfigItem(
 			keyName = "Check on self join",
 			name = "Check on Joining",
-			description = "Runs the check when you join Clan Chat.",
+			description = "Runs the check when you join Friends Chat.",
 			position = 5
 	)
 	default boolean selfCheck() { return false;}
 	@ConfigItem(
 			keyName = "Ping on self join",
 			name = "Ping on Joining",
-			description = "If \"Check on Joining\" is enabled, will ping if players on the list are in cc when you join Clan Chat.",
+			description = "If \"Check on Joining\" is enabled, will ping if players on the list are in cc when you join Friends Chat.",
 			position = 6
 	)
 	default boolean selfPing() { return false;}
@@ -70,7 +70,7 @@ public interface ClanChatWarningsConfig extends Config
 	@ConfigItem(
 			keyName = "Tracker",
 			name = "Enable Tracker",
-			description = "Adds a right click option that will track, and notify via chat message, when a player leaves Clan Chat after saying \"Tracker Keyword\".",
+			description = "Adds a right click option that will track, and notify via chat message, when a player leaves Friends Chat.",
 			position = 8
 	)
 	default boolean track() { return false;}

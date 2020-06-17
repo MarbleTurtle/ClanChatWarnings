@@ -13,7 +13,7 @@ import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
-import net.runelite.client.game.ClanManager;
+import net.runelite.client.game.FriendChatManager;
 import net.runelite.client.menus.MenuManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -44,7 +44,7 @@ public class ClanChatWarningsPlugin extends Plugin {
     private final Map<String, Instant> cooldownMap = new HashMap<>();
     private final List<Integer> trackTimer = new ArrayList<>();
     private final List<String> trackName = new ArrayList<>();
-    private final List<String> clansName = new ArrayList<>();
+    private final List<String> friendChatName = new ArrayList<>();
     private boolean hopping;
     private int clanJoinedTick;
     @Inject
@@ -56,7 +56,7 @@ public class ClanChatWarningsPlugin extends Plugin {
     @Inject
     private ClanChatWarningsConfig config;
     @Inject
-    private ClanManager clanManager;
+    private FriendChatManager friendChatManager;
 
     @Override
     protected void startUp() {
@@ -71,7 +71,7 @@ public class ClanChatWarningsPlugin extends Plugin {
         this.cooldownMap.clear();
         this.trackTimer.clear();
         this.trackName.clear();
-        this.clansName.clear();
+        this.friendChatName.clear();
     }
 
     @Subscribe
@@ -106,7 +106,7 @@ public class ClanChatWarningsPlugin extends Plugin {
     @Subscribe
     public void onPlayerMenuOptionClicked(PlayerMenuOptionClicked event) {
         if (event.getMenuOption().equals("Track Player")) {
-            for (String name : clansName) {
+            for (String name : friendChatName) {
                 if (event.getMenuTarget().toLowerCase().contains(name.toLowerCase())) {
                     if (trackName.contains(name.toLowerCase())) {
                         trackTimer.set(trackName.indexOf(name.toLowerCase()), (int) (this.config.trackerLength() / .6));
@@ -124,7 +124,7 @@ public class ClanChatWarningsPlugin extends Plugin {
         this.exemptPlayers.clear();
         this.warnPlayers.clear();
         warnings.putAll(NEWLINE_SPLITTER.splitToList(this.config.warnings()).stream()
-                .map((s) -> s.toLowerCase().split(MESSAGE_DELIMITER))
+                .map((s) -> s.split(MESSAGE_DELIMITER))
                 .collect(Collectors.toMap(p -> Pattern.compile(p[0].trim(), Pattern.CASE_INSENSITIVE), p -> p.length > 1 ? p[1].trim() : ""))
         );
         exemptPlayers.addAll(Text.fromCSV(this.config.exemptPlayers()).stream()
@@ -134,8 +134,8 @@ public class ClanChatWarningsPlugin extends Plugin {
 
 
         warnPlayers.putAll(Text.fromCSV(this.config.warnPlayers()).stream()
-                .map((s) -> s.toLowerCase().split(MESSAGE_DELIMITER))
-                .collect(Collectors.toMap(p -> p[0].trim(), p -> p.length > 1 ? p[1].trim() : "",(p1,p2)->p1))
+                .map((s) -> s.split(MESSAGE_DELIMITER))
+                .collect(Collectors.toMap(p -> p[0].toLowerCase().trim(), p -> p.length > 1 ? p[1].trim() : "",(p1,p2)->p1))
         );
     }
 
@@ -143,10 +143,10 @@ public class ClanChatWarningsPlugin extends Plugin {
     private void sendNotification(String player, String Comment, int type) {
         StringBuilder stringBuilder = new StringBuilder();
         if (type == 1) {
-            stringBuilder.append("has joined Clan Chat. ").append(Comment);
+            stringBuilder.append("has joined Friends Chat. ").append(Comment);
             String notification = stringBuilder.toString();
             if (this.config.kickable()) {
-                this.client.addChatMessage(ChatMessageType.FRIENDSCHAT, player, notification, "Warning");
+                this.client.addChatMessage(ChatMessageType.FRIENDSCHATNOTIFICATION, player, notification, "Warning");
             } else {
                 this.client.addChatMessage(ChatMessageType.FRIENDSCHATNOTIFICATION, "", player + " " + notification, "");
             }
@@ -156,7 +156,7 @@ public class ClanChatWarningsPlugin extends Plugin {
                 }
             }
         } else if (type == 2) {
-            stringBuilder.append(" has left Clan Chat.");
+            stringBuilder.append(" has left Friends Chat.");
             String notification = stringBuilder.toString();
             this.client.addChatMessage(ChatMessageType.FRIENDSCHATNOTIFICATION, "", player + " " + notification, "");
             if (this.config.trackerPing()) {
@@ -166,20 +166,20 @@ public class ClanChatWarningsPlugin extends Plugin {
     }
 
     @Subscribe
-    public void onClanMemberLeft(ClanMemberLeft event) {
+    public void onFriendsChatMemberLeft(FriendsChatMemberLeft event) {
         String name = event.getMember().getName();
         if (trackName.contains(name.toLowerCase())) {
             sendNotification(toTrueName(name), "", 2);
             trackTimer.remove(trackName.indexOf(name.toLowerCase()));
             trackName.remove(name.toLowerCase());
         }
-		clansName.remove(name);
+        friendChatName.remove(name);
     }
 
     @Subscribe
-    public void onClanMemberJoined(ClanMemberJoined event) {
+    public void onFriendsChatMemberJoined(FriendsChatMemberJoined event) {
         if (this.config.track()) {
-            clansName.add(event.getMember().getName());
+            friendChatName.add(event.getMember().getName());
         }
 
         if (this.clanJoinedTick != this.client.getTickCount()) {
@@ -187,7 +187,7 @@ public class ClanChatWarningsPlugin extends Plugin {
         }
 
         if (clanJoinedTick != client.getTickCount() || (this.config.selfCheck() && !hopping)) {
-            final ClanMember member = event.getMember();
+            final FriendsChatMember member = event.getMember();
             final String memberName = toTrueName(member.getName().trim());
             final String localName = client.getLocalPlayer() == null ? null : client.getLocalPlayer().getName();
 
@@ -234,7 +234,7 @@ public class ClanChatWarningsPlugin extends Plugin {
     }
 
     @Subscribe
-    public void onClanChanged(ClanChanged event) {
+    public void onFriendsChatChanged(FriendsChatChanged event) {
         if (event.isJoined()) {
             this.clanJoinedTick = this.client.getTickCount();
         }
