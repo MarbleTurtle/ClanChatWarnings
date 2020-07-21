@@ -146,7 +146,7 @@ public class ClanChatWarningsPlugin extends Plugin {
             stringBuilder.append("has joined Friends Chat. ").append(Comment);
             String notification = stringBuilder.toString();
             if (this.config.kickable()) {
-                this.client.addChatMessage(ChatMessageType.FRIENDSCHATNOTIFICATION, player, notification, "Warning");
+                this.client.addChatMessage(ChatMessageType.FRIENDSCHAT, player, notification, "Warning");
             } else {
                 this.client.addChatMessage(ChatMessageType.FRIENDSCHATNOTIFICATION, "", player + " " + notification, "");
             }
