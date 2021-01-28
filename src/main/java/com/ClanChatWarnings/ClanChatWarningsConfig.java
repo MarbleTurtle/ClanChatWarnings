@@ -67,25 +67,4 @@ public interface ClanChatWarningsConfig extends Config
 			position = 7
 	)
 	default boolean kickable() { return false;}
-	@ConfigItem(
-			keyName = "Tracker",
-			name = "Enable Tracker",
-			description = "Adds a right click option that will track, and notify via chat message, when a player leaves Friends Chat.",
-			position = 8
-	)
-	default boolean track() { return false;}
-	@ConfigItem(
-			keyName = "Tracker Length",
-			name = "Tracker Length",
-			description = "How long to track a Player, in seconds.",
-			position = 9
-	)
-	default int trackerLength() { return 30;}
-	@ConfigItem(
-			keyName = "Tracker Ping",
-			name = "Ping on Tracked Leave",
-			description = "Sends a ping if a tracked player leaves.",
-			position = 10
-	)
-	default boolean trackerPing() { return false;}
 }

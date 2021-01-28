@@ -74,51 +74,6 @@ public class ClanChatWarningsPlugin extends Plugin {
         this.friendChatName.clear();
     }
 
-    @Subscribe
-    public void onMenuEntryAdded(MenuEntryAdded event) {
-        //If you or someone you love is able to figure out how to only have this enabled for clan and private chat, hit a Turtle up.
-        if (true && this.config.track()) {
-            int groupId = WidgetInfo.TO_GROUP(event.getActionParam1());
-            String option = event.getOption();
-            if (groupId == WidgetInfo.CHATBOX.getGroupId() && !"Kick".equals(option) || groupId == WidgetInfo.PRIVATE_CHAT_MESSAGE.getGroupId()) {
-                if (!AFTER_OPTIONS.contains(option)) {
-                    return;
-                }
-                MenuEntry track = new MenuEntry();
-                track.setOption("Track Player");
-                track.setTarget(event.getTarget());
-                track.setType(MenuAction.RUNELITE.getId());
-                track.setParam0(event.getActionParam0());
-                track.setParam1(event.getActionParam1());
-                track.setIdentifier(event.getIdentifier());
-                this.insertMenuEntry(track, this.client.getMenuEntries());
-            }
-        }
-    }
-
-    private void insertMenuEntry(MenuEntry newEntry, MenuEntry[] entries) {
-        MenuEntry[] newMenu = ObjectArrays.concat(entries, newEntry);
-        int menuEntryCount = newMenu.length;
-        ArrayUtils.swap(newMenu, menuEntryCount - 1, menuEntryCount - 2);
-        this.client.setMenuEntries(newMenu);
-    }
-
-    @Subscribe
-    public void onPlayerMenuOptionClicked(PlayerMenuOptionClicked event) {
-        if (event.getMenuOption().equals("Track Player")) {
-            for (String name : friendChatName) {
-                if (event.getMenuTarget().toLowerCase().contains(name.toLowerCase())) {
-                    if (trackName.contains(name.toLowerCase())) {
-                        trackTimer.set(trackName.indexOf(name.toLowerCase()), (int) (this.config.trackerLength() / .6));
-                    } else {
-                        trackName.add(name.toLowerCase());
-                        trackTimer.add((int) (this.config.trackerLength() / .6));
-                    }
-                }
-            }
-        }
-    }
-
     void updateSets() {
         this.warnings.clear();
         this.exemptPlayers.clear();
@@ -155,13 +110,6 @@ public class ClanChatWarningsPlugin extends Plugin {
                     this.ping.notify(player + " " + notification);
                 }
             }
-        } else if (type == 2) {
-            stringBuilder.append(" has left Friends Chat.");
-            String notification = stringBuilder.toString();
-            this.client.addChatMessage(ChatMessageType.FRIENDSCHATNOTIFICATION, "", player + " " + notification, "");
-            if (this.config.trackerPing()) {
-                this.ping.notify(player + " " + notification);
-            }
         }
     }
 
@@ -178,10 +126,6 @@ public class ClanChatWarningsPlugin extends Plugin {
 
     @Subscribe
     public void onFriendsChatMemberJoined(FriendsChatMemberJoined event) {
-        if (this.config.track()) {
-            friendChatName.add(event.getMember().getName());
-        }
-
         if (this.clanJoinedTick != this.client.getTickCount()) {
             hopping = false;
         }
