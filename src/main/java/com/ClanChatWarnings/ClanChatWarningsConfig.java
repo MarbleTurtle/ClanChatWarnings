@@ -29,7 +29,7 @@ public interface ClanChatWarningsConfig extends Config
 			description = "Regex warnings for players joining Friends Chat. Supports notes by adding '~' after name. Separate with new lines.",
 			position = 1
 	)
-	public default String warnings() {
+	default String warnings() {
 		return "";
 	}
 	@ConfigItem(
