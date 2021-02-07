@@ -17,12 +17,19 @@ public interface ClanChatWarningsConfig extends Config
 		return "";
 	}
 	@ConfigItem(
+			keyName = "notifiedPlayer",
+			name = "Players Warnings",
+			description = "List of players you want to be warned of on joining. Supports notes by adding '~' after name. Separate with commas.",
+			position = 0
+	)
+	void warnPlayers(String str);
+	@ConfigItem(
 			keyName = "notifiedMass",
 			name = "Regex Warnings",
 			description = "Regex warnings for players joining Friends Chat. Supports notes by adding '~' after name. Separate with new lines.",
 			position = 1
 	)
-	default String warnings() {
+	public default String warnings() {
 		return "";
 	}
 	@ConfigItem(
@@ -67,4 +74,18 @@ public interface ClanChatWarningsConfig extends Config
 			position = 7
 	)
 	default boolean kickable() { return false;}
+	@ConfigItem(
+			keyName = "Menu Add",
+			name = "Right click add to Player Warnings",
+			description = "Adds a right click option to player messages to add them to the list (Warning will not visually update if config is open).",
+			position = 8
+	)
+	default boolean menu() { return false;}
+	@ConfigItem(
+			keyName = "ShiftMenu",
+			name = "Shift required ",
+			description = "Requires shift to be held to see the add to warnings option.",
+			position = 9
+	)
+	default boolean shiftClick() { return false;}
 }

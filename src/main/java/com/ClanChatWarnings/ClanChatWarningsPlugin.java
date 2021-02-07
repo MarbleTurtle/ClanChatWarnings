@@ -5,6 +5,9 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ObjectArrays;
 import com.google.inject.Provides;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.*;
@@ -28,7 +31,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import net.runelite.client.input.KeyManager;
 
 @Slf4j
 @PluginDescriptor(
@@ -47,6 +50,9 @@ public class ClanChatWarningsPlugin extends Plugin {
     private final List<String> friendChatName = new ArrayList<>();
     private boolean hopping;
     private int clanJoinedTick;
+    @Getter(AccessLevel.PACKAGE)
+    @Setter(AccessLevel.PACKAGE)
+    private boolean hotKeyPressed;
     @Inject
     private Client client;
     @Inject
@@ -57,10 +63,15 @@ public class ClanChatWarningsPlugin extends Plugin {
     private ClanChatWarningsConfig config;
     @Inject
     private FriendChatManager friendChatManager;
+    @Inject
+    CCWInputListener hotKeyListener;
+    @Inject
+    KeyManager keyManager;
 
     @Override
     protected void startUp() {
         this.updateSets();
+        keyManager.registerKeyListener(hotKeyListener);
     }
 
     @Override
@@ -72,6 +83,52 @@ public class ClanChatWarningsPlugin extends Plugin {
         this.trackTimer.clear();
         this.trackName.clear();
         this.friendChatName.clear();
+        keyManager.unregisterKeyListener(hotKeyListener);
+    }
+
+    @Subscribe
+    public void onFocusChanged(FocusChanged focusChanged) {
+        if (!focusChanged.isFocused()) {
+            hotKeyPressed = false;
+        }
+    }
+
+    @Subscribe
+    public void onMenuEntryAdded(MenuEntryAdded event) {
+        //If you or someone you love is able to figure out how to only have this enabled for clan chat, hit a Turtle up.
+        if(config.menu()&&(hotKeyPressed||!config.shiftClick())){
+            int groupId = WidgetInfo.TO_GROUP(event.getActionParam1());
+            String option = event.getOption();
+            if (groupId == WidgetInfo.CHATBOX.getGroupId() && !"Kick".equals(option) || groupId == WidgetInfo.PRIVATE_CHAT_MESSAGE.getGroupId()) {
+                if (!AFTER_OPTIONS.contains(option)) {
+                    return;
+
+                }
+                MenuEntry entry = new MenuEntry();
+                entry.setOption("Add to CC Warnings");
+                entry.setTarget(event.getTarget());
+                entry.setType(MenuAction.RUNELITE.getId());
+                entry.setParam0(event.getActionParam0());
+                entry.setParam1(event.getActionParam1());
+                entry.setIdentifier(event.getIdentifier());
+                this.insertMenuEntry(entry, this.client.getMenuEntries());
+            }
+        }
+    }
+
+    private void insertMenuEntry(MenuEntry newEntry, MenuEntry[] entries) {
+        MenuEntry[] newMenu = (MenuEntry[]) ObjectArrays.concat(entries, newEntry);
+        int menuEntryCount = newMenu.length;
+        ArrayUtils.swap(newMenu, menuEntryCount - 1, menuEntryCount - 2);
+        this.client.setMenuEntries(newMenu);
+    }
+
+    @Subscribe
+    public void onMenuOptionClicked(MenuOptionClicked event) {
+        if (event.getMenuOption().equals("Add to CC Warnings")) {
+           config.warnPlayers(config.warnPlayers()+", "+Text.removeTags(event.getMenuTarget()));
+            this.client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", Text.removeTags(event.getMenuTarget())+" has been added to Clan Chat Warnings.", "");
+        }
     }
 
     void updateSets() {
