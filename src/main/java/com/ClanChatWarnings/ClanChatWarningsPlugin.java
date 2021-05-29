@@ -16,7 +16,6 @@ import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
-import net.runelite.client.game.FriendChatManager;
 import net.runelite.client.menus.MenuManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -61,8 +60,6 @@ public class ClanChatWarningsPlugin extends Plugin {
     private MenuManager menuManager;
     @Inject
     private ClanChatWarningsConfig config;
-    @Inject
-    private FriendChatManager friendChatManager;
     @Inject
     CCWInputListener hotKeyListener;
     @Inject
