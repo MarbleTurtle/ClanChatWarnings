@@ -44,8 +44,6 @@ public class ClanChatWarningsPlugin extends Plugin {
     private final Map<String, String> warnPlayers = new HashMap<>();
     private final Set<String> exemptPlayers = new HashSet<>();
     private final Map<String, Instant> cooldownMap = new HashMap<>();
-    private final List<Integer> trackTimer = new ArrayList<>();
-    private final List<String> trackName = new ArrayList<>();
     private final List<String> friendChatName = new ArrayList<>();
     private boolean hopping;
     private int clanJoinedTick;
@@ -77,8 +75,6 @@ public class ClanChatWarningsPlugin extends Plugin {
         this.exemptPlayers.clear();
         this.warnPlayers.clear();
         this.cooldownMap.clear();
-        this.trackTimer.clear();
-        this.trackName.clear();
         this.friendChatName.clear();
         keyManager.unregisterKeyListener(hotKeyListener);
     }
@@ -96,28 +92,18 @@ public class ClanChatWarningsPlugin extends Plugin {
         if(config.menu()&&(hotKeyPressed||!config.shiftClick())){
             int groupId = WidgetInfo.TO_GROUP(event.getActionParam1());
             String option = event.getOption();
-            if (groupId == WidgetInfo.CHATBOX.getGroupId() && !"Kick".equals(option) || groupId == WidgetInfo.PRIVATE_CHAT_MESSAGE.getGroupId()) {
-                if (!AFTER_OPTIONS.contains(option)) {
-                    return;
-
-                }
-                MenuEntry entry = new MenuEntry();
-                entry.setOption("Add to CC Warnings");
-                entry.setTarget(event.getTarget());
-                entry.setType(MenuAction.RUNELITE.getId());
-                entry.setParam0(event.getActionParam0());
-                entry.setParam1(event.getActionParam1());
-                entry.setIdentifier(event.getIdentifier());
-                this.insertMenuEntry(entry, this.client.getMenuEntries());
+            if (groupId == WidgetInfo.FRIENDS_CHAT.getGroupId() && (option.equals("Add ignore") || option.equals("Remove friend"))||
+                groupId == WidgetInfo.PRIVATE_CHAT_MESSAGE.getGroupId() && (option.equals("Add ignore") || option.equals("Message"))||
+                groupId == WidgetInfo.CHATBOX.getGroupId() && (option.equals("Add ignore") || option.equals("Message"))) {
+                client.createMenuEntry(1)
+                    .setOption("Add to CC Warnings")
+                    .setTarget(event.getTarget())
+                    .setType(MenuAction.RUNELITE)
+                    .setParam0(event.getActionParam0())
+                    .setParam1(event.getActionParam1())
+                    .setIdentifier(event.getIdentifier());
             }
         }
-    }
-
-    private void insertMenuEntry(MenuEntry newEntry, MenuEntry[] entries) {
-        MenuEntry[] newMenu = (MenuEntry[]) ObjectArrays.concat(entries, newEntry);
-        int menuEntryCount = newMenu.length;
-        ArrayUtils.swap(newMenu, menuEntryCount - 1, menuEntryCount - 2);
-        this.client.setMenuEntries(newMenu);
     }
 
     @Subscribe
@@ -140,7 +126,6 @@ public class ClanChatWarningsPlugin extends Plugin {
                 .map((s) -> s.toLowerCase().trim())
                 .collect(Collectors.toSet())
         );
-
 
         warnPlayers.putAll(Text.fromCSV(this.config.warnPlayers()).stream()
                 .map((s) -> s.split(MESSAGE_DELIMITER))
@@ -168,17 +153,6 @@ public class ClanChatWarningsPlugin extends Plugin {
     }
 
     @Subscribe
-    public void onFriendsChatMemberLeft(FriendsChatMemberLeft event) {
-        String name = event.getMember().getName();
-        if (trackName.contains(name.toLowerCase())) {
-            sendNotification(toTrueName(name), "", 2);
-            trackTimer.remove(trackName.indexOf(name.toLowerCase()));
-            trackName.remove(name.toLowerCase());
-        }
-        friendChatName.remove(name);
-    }
-
-    @Subscribe
     public void onFriendsChatMemberJoined(FriendsChatMemberJoined event) {
         if (this.clanJoinedTick != this.client.getTickCount()) {
             hopping = false;
@@ -199,20 +173,6 @@ public class ClanChatWarningsPlugin extends Plugin {
                     cooldownMap.put(memberName.toLowerCase(), Instant.now());
                 }
                 sendNotification(memberName, warningMessage, 1);
-            }
-        }
-    }
-
-    @Subscribe
-    public void onGameTick(GameTick event) {
-        if (!trackName.isEmpty()) {
-            for (int i = 0; i < trackTimer.size(); i++) {
-                if (trackTimer.get(i) > 0) {
-                    trackTimer.set(i, trackTimer.get(i) - 1);
-                } else {
-                    trackTimer.remove(i);
-                    trackName.remove(i);
-                }
             }
         }
     }
