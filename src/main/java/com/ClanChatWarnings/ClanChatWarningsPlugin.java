@@ -246,4 +246,21 @@ public class ClanChatWarningsPlugin extends Plugin {
 	{
 		return CharMatcher.ascii().retainFrom(str.replace('\u00A0', ' ')).trim();
 	}
+
+    @Subscribe(priority = -2) // Run after RuneLite's Menu Entry Swapper and geheur's Custom Menu Swaps
+    public void onPostMenuSort(PostMenuSort e) {
+        MenuEntry[] menuEntries = client.getMenuEntries();
+        if (menuEntries.length == 0) return;
+        for (MenuEntry entry : menuEntries) {
+            if (entry.getType().equals(MenuAction.CC_OP_LOW_PRIORITY)) {
+                if (entry.getOption().equalsIgnoreCase("kick") || entry.getOption().equalsIgnoreCase("kick user")) {
+                    String target = Text.standardize(entry.getTarget());
+                    if (warnPlayers.containsKey(target)) {
+                        entry.setType(MenuAction.CC_OP);
+                        client.setMenuEntries(new MenuEntry[]{entry});
+                    }
+                }
+            }
+        }
+    }
 }

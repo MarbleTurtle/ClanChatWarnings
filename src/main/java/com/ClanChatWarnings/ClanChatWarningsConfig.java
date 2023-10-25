@@ -83,9 +83,17 @@ public interface ClanChatWarningsConfig extends Config
 	default boolean menu() { return false;}
 	@ConfigItem(
 			keyName = "ShiftMenu",
-			name = "Shift required ",
+			name = "Shift required",
 			description = "Requires shift to be held to see the add to warnings option.",
 			position = 9
 	)
 	default boolean shiftClick() { return false;}
+
+	@ConfigItem(
+			keyName = "MenuSwap",
+			name = "Menu Entry Swap",
+			description = "Swap menu entries to allow left click kicks. (Warning: removes all other right click options on players in the list)",
+			position = 10
+	)
+	default boolean menuSwap() { return false;}
 }
