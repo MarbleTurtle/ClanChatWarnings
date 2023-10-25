@@ -109,7 +109,7 @@ public class ClanChatWarningsPlugin extends Plugin {
     @Subscribe
     public void onMenuOptionClicked(MenuOptionClicked event) {
         if (event.getMenuOption().equals("Add to CC Warnings")) {
-           config.warnPlayers(config.warnPlayers()+", "+Text.removeTags(event.getMenuTarget()));
+           config.warnPlayers(config.warnPlayers()+", "+Text.standardize(event.getMenuTarget()));
             this.client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", Text.removeTags(event.getMenuTarget())+" has been added to Clan Chat Warnings.", "");
         }
     }
