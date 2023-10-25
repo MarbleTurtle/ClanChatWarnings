@@ -24,7 +24,6 @@ public class CCWInputListener implements KeyListener {
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == HOTKEY) {
             plugin.setHotKeyPressed(true);
-            System.out.println("True");
         }
     }
 
@@ -32,7 +31,6 @@ public class CCWInputListener implements KeyListener {
     public void keyReleased(KeyEvent e) {
         if (e.getKeyCode() == HOTKEY) {
             plugin.setHotKeyPressed(false);
-            System.out.println("False");
         }
     }
 }
