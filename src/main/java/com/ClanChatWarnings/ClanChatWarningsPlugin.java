@@ -1,6 +1,5 @@
 package com.ClanChatWarnings;
 
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Provides;
@@ -10,7 +9,8 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.*;
-import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.api.widgets.InterfaceID;
+import net.runelite.api.widgets.WidgetUtil;
 import net.runelite.client.Notifier;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
@@ -98,11 +98,11 @@ public class ClanChatWarningsPlugin extends Plugin {
     public void onMenuEntryAdded(MenuEntryAdded event) {
         //If you or someone you love is able to figure out how to only have this enabled for clan chat, hit a Turtle up.
         if(config.menu()&&(hotKeyPressed||!config.shiftClick())){
-            int groupId = WidgetInfo.TO_GROUP(event.getActionParam1());
+            int groupId = WidgetUtil.componentToInterface(event.getActionParam1());
             String option = event.getOption();
-            if (groupId == WidgetInfo.FRIENDS_CHAT.getGroupId() && (option.equals("Add ignore") || option.equals("Remove friend"))||
-                groupId == WidgetInfo.PRIVATE_CHAT_MESSAGE.getGroupId() && (option.equals("Add ignore") || option.equals("Message"))||
-                groupId == WidgetInfo.CHATBOX.getGroupId() && (option.equals("Add ignore") || option.equals("Message"))) {
+            if (groupId == InterfaceID.FRIENDS_CHAT && (option.equals("Add ignore") || option.equals("Remove friend"))||
+                groupId == InterfaceID.PRIVATE_CHAT && (option.equals("Add ignore") || option.equals("Message"))||
+                groupId == InterfaceID.CHATBOX && (option.equals("Add ignore") || option.equals("Message"))) {
                 client.createMenuEntry(1)
                     .setOption("Add to CC Warnings")
                     .setTarget(event.getTarget())
