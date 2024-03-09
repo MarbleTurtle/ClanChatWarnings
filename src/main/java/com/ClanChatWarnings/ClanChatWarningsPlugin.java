@@ -267,7 +267,7 @@ public class ClanChatWarningsPlugin extends Plugin {
             if (entry.getType().equals(MenuAction.CC_OP_LOW_PRIORITY)) {
                 if (entry.getOption().equalsIgnoreCase("kick") || entry.getOption().equalsIgnoreCase("kick user")) {
                     String target = Text.standardize(entry.getTarget());
-                    if (warnPlayers.containsKey(target)) {
+                    if (getWarningMessageByUsername(target) != null) {
                         entry.setType(MenuAction.CC_OP);
                         client.setMenuEntries(new MenuEntry[]{entry});
                     }
