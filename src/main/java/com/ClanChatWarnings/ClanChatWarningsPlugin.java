@@ -3,7 +3,6 @@ package com.ClanChatWarnings;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ObjectArrays;
 import com.google.inject.Provides;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -13,24 +12,26 @@ import net.runelite.api.*;
 import net.runelite.api.events.*;
 import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.Notifier;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.input.KeyManager;
 import net.runelite.client.menus.MenuManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.util.Text;
-import org.apache.commons.lang3.ArrayUtils;
+import okhttp3.*;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import net.runelite.client.input.KeyManager;
 
 @Slf4j
 @PluginDescriptor(
@@ -45,6 +46,7 @@ public class ClanChatWarningsPlugin extends Plugin {
     private final Set<String> exemptPlayers = new HashSet<>();
     private final Map<String, Instant> cooldownMap = new HashMap<>();
     private final List<String> friendChatName = new ArrayList<>();
+    private final List<String> remoteNames = new ArrayList<>();
     private boolean hopping;
     private int clanJoinedTick;
     @Getter(AccessLevel.PACKAGE)
@@ -52,6 +54,8 @@ public class ClanChatWarningsPlugin extends Plugin {
     private boolean hotKeyPressed;
     @Inject
     private Client client;
+    @Inject
+    private ClientThread clientThread;
     @Inject
     private Notifier ping;
     @Inject
@@ -62,11 +66,15 @@ public class ClanChatWarningsPlugin extends Plugin {
     CCWInputListener hotKeyListener;
     @Inject
     KeyManager keyManager;
+    @Inject
+    OkHttpClient httpClient;
+
 
     @Override
     protected void startUp() {
         this.updateSets();
         keyManager.registerKeyListener(hotKeyListener);
+        fetchRemoteNames(false);
     }
 
     @Override
@@ -160,7 +168,7 @@ public class ClanChatWarningsPlugin extends Plugin {
 
         if (clanJoinedTick != client.getTickCount() || (this.config.selfCheck() && !hopping)) {
             final FriendsChatMember member = event.getMember();
-            final String memberName = toTrueName(member.getName().trim());
+            final String memberName = Text.standardize(member.getName());
             final String localName = client.getLocalPlayer() == null ? null : client.getLocalPlayer().getName();
 
             if (memberName == null || (memberName.equalsIgnoreCase(localName) && !config.selfCheck())) {
@@ -189,6 +197,9 @@ public class ClanChatWarningsPlugin extends Plugin {
         if (gameStateChanged.getGameState() == GameState.HOPPING) {
             hopping = true;
         }
+        if (gameStateChanged.getGameState() == GameState.LOGGING_IN || gameStateChanged.getGameState() == GameState.HOPPING) {
+            fetchRemoteNames(false);
+        }
     }
 
     @Subscribe
@@ -212,7 +223,7 @@ public class ClanChatWarningsPlugin extends Plugin {
      */
     @Nullable
     private String getWarningMessageByUsername(String username) {
-        username = username.toLowerCase();
+        username = Text.standardize(username);
         // This player is exempt from any warning.
         if (exemptPlayers.contains(username)) {
             return null;
@@ -240,12 +251,13 @@ public class ClanChatWarningsPlugin extends Plugin {
             }
         }
 
+        if (config.remoteEnabled()) {
+            if (remoteNames.contains(username))
+                return "";
+        }
+
         return null;
     }
-	private String toTrueName(String str)
-	{
-		return CharMatcher.ascii().retainFrom(str.replace('\u00A0', ' ')).trim();
-	}
 
     @Subscribe(priority = -2) // Run after RuneLite's Menu Entry Swapper and geheur's Custom Menu Swaps
     public void onPostMenuSort(PostMenuSort e) {
@@ -261,6 +273,71 @@ public class ClanChatWarningsPlugin extends Plugin {
                     }
                 }
             }
+
+            if (entry.getOption().equalsIgnoreCase("chat-channel")) {
+                if (config.remoteEnabled()) {
+                    client.createMenuEntry(1).setOption("Refresh Remote Warnings").setType(MenuAction.RUNELITE).setTarget("(" + remoteNames.size() + ")")
+                            .onClick(clickEvent ->
+                            {
+                                fetchRemoteNames(true);
+                            });
+                }
+            }
         }
+    }
+
+    public void fetchRemoteNames(boolean verbose) {
+        if (!config.remoteEnabled() || config.remoteURL().isEmpty())
+            return;
+        remoteNames.clear();
+
+        HttpUrl url = null;
+        try {
+            url = HttpUrl.get(config.remoteURL());
+        } catch (Exception e) {
+            if (verbose) {
+                clientThread.invoke(() -> {
+                    client.addChatMessage(ChatMessageType.GAMEMESSAGE, "Error", e.getMessage(), "Error2");
+                });
+            }
+            return;
+        }
+
+        Request request = new Request.Builder().url(url).build();
+        httpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                if (verbose) {
+                    clientThread.invoke(() -> {
+                        client.addChatMessage(ChatMessageType.GAMEMESSAGE, "Error", e.getMessage(), "Error");
+                    });
+                }
+                log.error("Error fetching remote warning list", e);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String raw = response.body().string();
+                    for (String name : raw.split(",")) {
+                        String standardized = Text.standardize(name);
+                        if (!standardized.isEmpty())
+                            remoteNames.add(standardized);
+                    }
+
+                    if (verbose)
+                        clientThread.invoke(() -> {
+                            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Fetched " + remoteNames.size() + " names.", "");
+                        });
+                } else {
+                    if (verbose) {
+                        clientThread.invoke(() -> {
+                            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "Error", "Got response code: " + response.code(), "Error2");
+                        });
+                    }
+                    log.error("Error fetching remote warning list");
+                }
+            }
+        });
     }
 }

@@ -3,6 +3,7 @@ package com.ClanChatWarnings;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.ConfigSection;
 
 @ConfigGroup("ClanChatPlus")
 public interface ClanChatWarningsConfig extends Config
@@ -89,11 +90,36 @@ public interface ClanChatWarningsConfig extends Config
 	)
 	default boolean shiftClick() { return false;}
 
-	@ConfigItem(
-			keyName = "MenuSwap",
-			name = "Menu Entry Swap",
-			description = "Swap menu entries to allow left click kicks. (Warning: removes all other right click options on players in the list)",
-			position = 10
-	)
-	default boolean menuSwap() { return false;}
+    @ConfigItem(
+            keyName = "MenuSwap",
+            name = "Menu Entry Swap",
+            description = "Swap menu entries to allow left click kicks. (Warning: removes all other right click options on players in the list)",
+            position = 10
+    )
+    default boolean menuSwap() { return false;}
+
+    @ConfigSection(name = "Remote Settings", description = "Use a website as an external list", position = 100)
+    final String sectionRemote = "sectionRemote";
+
+    @ConfigItem(
+            keyName = "remoteEnabled",
+            name = "Enabled",
+            description = "Enable pulling from an external website on login. (Refresh list by right clicking a chat-channel icon)",
+            position = 101,
+            section = sectionRemote
+    )
+    default boolean remoteEnabled() {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "remoteURL",
+            name = "Remote URL",
+            description = "The url of the website you want to pull, must be plain text, use commas as a delimiter.",
+            position = 102,
+            section = sectionRemote
+    )
+    default String remoteURL() {
+        return "";
+    }
 }
