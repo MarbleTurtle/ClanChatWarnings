@@ -98,7 +98,7 @@ public interface ClanChatWarningsConfig extends Config
     )
     default boolean menuSwap() { return false;}
 
-    @ConfigSection(name = "Remote Settings", description = "Use a website as an external list", position = 100)
+    @ConfigSection(name = "Remote Settings", description = "Use a website as an external list (Warning: This plugin can fetch text from 3rd party websites not controlled or verified by the RuneLite Developers)", position = 100)
     final String sectionRemote = "sectionRemote";
 
     @ConfigItem(
