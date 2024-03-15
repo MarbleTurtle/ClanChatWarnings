@@ -8,11 +8,16 @@ import net.runelite.client.config.ConfigSection;
 @ConfigGroup("ClanChatPlus")
 public interface ClanChatWarningsConfig extends Config
 {
+
+	@ConfigSection(name = "Player Lists", description = "List of players to give warnings for, regex lists, and exempt players", position = -1)
+	final String sectionLists = "sectionLists";
+
 	@ConfigItem(
 			keyName = "notifiedPlayer",
 			name = "Players Warnings",
 			description = "List of players you want to be warned of on joining. Supports notes by adding '~' after name. Separate with commas.",
-			position = 0
+			position = 0,
+			section = sectionLists
 	)
 	default String warnPlayers() {
 		return "";
@@ -21,14 +26,16 @@ public interface ClanChatWarningsConfig extends Config
 			keyName = "notifiedPlayer",
 			name = "Players Warnings",
 			description = "List of players you want to be warned of on joining. Supports notes by adding '~' after name. Separate with commas.",
-			position = 0
+			position = 0,
+			section = sectionLists
 	)
 	void warnPlayers(String str);
 	@ConfigItem(
 			keyName = "notifiedMass",
 			name = "Regex Warnings",
 			description = "Regex warnings for players joining Friends Chat. Supports notes by adding '~' after name. Separate with new lines.",
-			position = 1
+			position = 1,
+			section = sectionLists
 	)
 	default String warnings() {
 		return "";
@@ -37,14 +44,16 @@ public interface ClanChatWarningsConfig extends Config
 			keyName = "exemptPlayers",
 			name = "Exempt Players",
 			description = "Players to be ignored when joining Friends Chat.",
-			position = 2
+			position = 2,
+			section = sectionLists
 	)
 	default String exemptPlayers() { return "";}
 	@ConfigItem(
 			keyName = "cooldown",
 			name = "Cooldown",
 			description = "Cooldown, in seconds, before you will be notified of a player joining again.",
-			position = 3
+			position = 3,
+			section = sectionLists
 	)
 	default int cooldown() { return 30;}
 	@ConfigItem(
@@ -98,13 +107,14 @@ public interface ClanChatWarningsConfig extends Config
     )
     default boolean menuSwap() { return false;}
 
-    @ConfigSection(name = "Remote Settings", description = "Use a website as an external list (Warning: This plugin can fetch text from 3rd party websites not controlled or verified by the RuneLite Developers)", position = 100)
+    @ConfigSection(name = "Remote Settings", description = "Use a website as an external list", position = 100)
     final String sectionRemote = "sectionRemote";
 
     @ConfigItem(
             keyName = "remoteEnabled",
             name = "Enabled",
             description = "Enable pulling from an external website on login. (Refresh list by right clicking a chat-channel icon)",
+			warning = "Warning: This plugin can fetch text from 3rd party websites not controlled or verified by the RuneLite Developers",
             position = 101,
             section = sectionRemote
     )
