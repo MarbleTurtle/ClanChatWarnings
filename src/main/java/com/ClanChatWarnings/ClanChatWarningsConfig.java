@@ -122,14 +122,55 @@ public interface ClanChatWarningsConfig extends Config
         return false;
     }
 
-    @ConfigItem(
-            keyName = "remoteURL",
-            name = "Remote URL",
-            description = "The url of the website you want to pull, must be plain text, use commas as a delimiter.",
-            position = 102,
-            section = sectionRemote
-    )
-    default String remoteURL() {
-        return "";
-    }
+	@ConfigItem(
+			keyName = "remoteURL",
+			name = "Remote URL",
+			description = "The url of the website you want to pull, must be plain text, use commas as a delimiter.",
+			position = 102,
+			section = sectionRemote
+	)
+	default String remoteURL() {
+		return "";
+	}
+
+	@ConfigItem(
+			keyName = "remoteAuthorization",
+			name = "Remote Authorization",
+			description = "Set the authorization header (if server requires it)",
+			position = 103,
+			section = sectionRemote
+	)
+	default String remoteAuthorization() {
+		return "";
+	}
+
+
+	@ConfigItem(
+			keyName = "postNewNames",
+			name = "Post New Names",
+			description = "Add a menu entry to submit to a remote url",
+			warning = "Warning: This setting will submit your new names added by the right click menu, your username, the current chat owner, and an authorization header(if set) to a 3rd party websites not controlled or verified by the RuneLite Developers",
+			position = 104,
+			section = sectionRemote
+	)
+	default boolean postNewNames() { return false; }
+
+	@ConfigItem(
+			keyName = "submissionURL",
+			name = "Submission URL",
+			description = "Submit new names added to your list to a remote url",
+			position = 105,
+			section = sectionRemote
+	)
+	default String submissionURL() { return ""; }
+
+	@ConfigItem(
+			keyName = "submissionAuthorization",
+			name = "Authorization",
+			description = "Set the authorization header (if server requires it)",
+			position = 106,
+			section = sectionRemote
+	)
+	default String submissionAuthorization() { return ""; }
+
 }

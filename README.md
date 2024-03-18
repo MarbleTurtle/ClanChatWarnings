@@ -52,3 +52,7 @@ Alert On Warning will send a notification to grab your attention, Check on self 
 **Tracker Settings**
 
 Tracker will enable the tracker. Tracker Keyword is what triggers the tracker to look for player names, if multiple names are found it will track each one seperately, similarly Stop Tracking Keyword will stop tracking any players, Tracker Length is how long until you wont be notified that they leave, and Tracker Ping is if the notification will also alert you. 
+
+**Remote Settings**
+
+This plugin can now send and submit names to a remote server. The remote webpage config settings can be set up to get raw text from a site (such as pastebin). If you wish to set up a custom server to handle name tracking, this plugin can send information when a player adds to thier list. It sends a simple JSON packet with "rsn", "submitter", and "channel_owner"

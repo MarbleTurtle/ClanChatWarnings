@@ -1,7 +1,10 @@
 package com.ClanChatWarnings;
 
+import com.formdev.flatlaf.json.Json;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.inject.Provides;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -109,16 +112,37 @@ public class ClanChatWarningsPlugin extends Plugin {
                     .setType(MenuAction.RUNELITE)
                     .setParam0(event.getActionParam0())
                     .setParam1(event.getActionParam1())
-                    .setIdentifier(event.getIdentifier());
-            }
-        }
-    }
+                    .setIdentifier(event.getIdentifier()).onClick(menuEntry -> {
 
-    @Subscribe
-    public void onMenuOptionClicked(MenuOptionClicked event) {
-        if (event.getMenuOption().equals("Add to CC Warnings")) {
-           config.warnPlayers(config.warnPlayers()+", "+Text.standardize(event.getMenuTarget()));
-            this.client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", Text.removeTags(event.getMenuTarget())+" has been added to Clan Chat Warnings.", "");
+                        String name = Text.standardize(menuEntry.getTarget());
+
+                            config.warnPlayers(config.warnPlayers()+", "+name);
+                            this.client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", name + " has been added to Clan Chat Warnings.", "");
+
+                            if(config.postNewNames()) {
+                                try {
+                                    submitRemoteName(name);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                if (config.postNewNames())
+                    client.createMenuEntry(1)
+                            .setOption("Add to Remote Warnings")
+                            .setTarget(event.getTarget())
+                            .setType(MenuAction.RUNELITE)
+                            .setParam0(event.getActionParam0())
+                            .setParam1(event.getActionParam1())
+                            .setIdentifier(event.getIdentifier()).onClick(menuEntry -> {
+                                String name = Text.standardize(menuEntry.getTarget());
+                                try {
+                                    submitRemoteName(name);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            });
+            }
         }
     }
 
@@ -264,12 +288,14 @@ public class ClanChatWarningsPlugin extends Plugin {
         MenuEntry[] menuEntries = client.getMenuEntries();
         if (menuEntries.length == 0) return;
         for (MenuEntry entry : menuEntries) {
-            if (entry.getType().equals(MenuAction.CC_OP_LOW_PRIORITY)) {
-                if (entry.getOption().equalsIgnoreCase("kick") || entry.getOption().equalsIgnoreCase("kick user")) {
-                    String target = Text.standardize(entry.getTarget());
-                    if (getWarningMessageByUsername(target) != null) {
-                        entry.setType(MenuAction.CC_OP);
-                        client.setMenuEntries(new MenuEntry[]{entry});
+            if(config.menuSwap()) {
+                if (entry.getType().equals(MenuAction.CC_OP_LOW_PRIORITY)) {
+                    if ((entry.getOption().equalsIgnoreCase("kick") || entry.getOption().equalsIgnoreCase("kick user"))) {
+                        String target = Text.standardize(entry.getTarget());
+                        if (warnPlayers.containsKey(target) || remoteNames.contains(target)) {
+                            entry.setType(MenuAction.CC_OP);
+                            client.setMenuEntries(new MenuEntry[]{entry});
+                        }
                     }
                 }
             }
@@ -303,8 +329,11 @@ public class ClanChatWarningsPlugin extends Plugin {
             return;
         }
 
-        Request request = new Request.Builder().url(url).build();
-        httpClient.newCall(request).enqueue(new Callback() {
+        Request.Builder builder = new Request.Builder().url(url);
+        if(!config.remoteAuthorization().isEmpty())
+            builder.header("Authorization", config.remoteAuthorization());
+
+        httpClient.newCall(builder.build()).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 if (verbose) {
@@ -340,4 +369,57 @@ public class ClanChatWarningsPlugin extends Plugin {
             }
         });
     }
+
+    private static final MediaType JSON = MediaType.parse("application/json");
+    public void submitRemoteName(String name) throws Exception {
+        if (!config.postNewNames())
+            return;
+
+        HttpUrl url = null;
+        try {
+            url = HttpUrl.get(config.submissionURL());
+        } catch (Exception e) {
+            if (client.getGameState() == GameState.LOGGED_IN) {
+                clientThread.invoke(() -> {
+                    client.addChatMessage(ChatMessageType.GAMEMESSAGE, "Error", e.getMessage(), "Error2");
+                });
+            }
+            return;
+        }
+
+        System.out.println(url.toString());
+
+        JsonObject body = new JsonObject();
+        body.addProperty("submitter", client.getLocalPlayer().getName());
+        body.addProperty("channel_owner", client.getFriendsChatManager() != null ? client.getFriendsChatManager().getOwner() : "");
+        body.addProperty("rsn", name);
+        RequestBody requestBody = RequestBody.create(JSON, body.toString());
+
+        Request.Builder builder = new Request.Builder().url(url).post(requestBody);
+        if (!config.submissionAuthorization().isEmpty())
+            builder.header("Authorization", config.submissionAuthorization());
+
+        httpClient.newCall(builder.build()).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                if (client.getGameState() == GameState.LOGGED_IN) {
+                    clientThread.invoke(() -> {
+                        client.addChatMessage(ChatMessageType.GAMEMESSAGE, "Error", e.getMessage(), "Error");
+                    });
+                }
+                log.error("Error submitting username", e);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    clientThread.invoke(() -> {
+                        client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Added " + name + " to remote warnings list.", "");
+                    });
+                }
+                response.close();
+            }
+        });
+    }
+
 }
