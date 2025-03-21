@@ -58,11 +58,11 @@ public interface ClanChatWarningsConfig extends Config
 	default int cooldown() { return 30;}
 	@ConfigItem(
 			keyName = "warnedAndAlerted",
-			name = "Alert On Warning",
+			name = "Warning Notification",
 			description = "Ping if player procs a warning.",
 			position = 4
 	)
-	default boolean warnedAttention() { return true;}
+	default Notification warningNotification() { return Notification.ON;}
 	@ConfigItem(
 			keyName = "Check on self join",
 			name = "Check on Joining",

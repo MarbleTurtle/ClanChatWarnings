@@ -1,9 +1,7 @@
 package com.ClanChatWarnings;
 
-import com.formdev.flatlaf.json.Json;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.inject.Provides;
 import lombok.AccessLevel;
@@ -176,9 +174,9 @@ public class ClanChatWarningsPlugin extends Plugin {
             } else {
                 this.client.addChatMessage(ChatMessageType.FRIENDSCHATNOTIFICATION, "", player + " " + notification, "");
             }
-            if (this.config.warnedAttention()) {
+            if (this.config.warningNotification().isEnabled()) {
                 if (this.clanJoinedTick != this.client.getTickCount() || this.config.selfPing()) {
-                    this.ping.notify(player + " " + notification);
+                    this.ping.notify(this.config.warningNotification(), player + " " + notification);
                 }
             }
         }
