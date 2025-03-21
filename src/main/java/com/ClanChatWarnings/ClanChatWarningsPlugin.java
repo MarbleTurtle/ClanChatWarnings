@@ -385,8 +385,6 @@ public class ClanChatWarningsPlugin extends Plugin {
             return;
         }
 
-        System.out.println(url.toString());
-
         JsonObject body = new JsonObject();
         body.addProperty("submitter", client.getLocalPlayer().getName());
         body.addProperty("channel_owner", client.getFriendsChatManager() != null ? client.getFriendsChatManager().getOwner() : "");
