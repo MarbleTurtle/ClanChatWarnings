@@ -193,8 +193,10 @@ public class ClanChatWarningsPlugin extends Plugin {
             final String memberName = Text.standardize(member.getName());
             final String localName = client.getLocalPlayer() == null ? null : client.getLocalPlayer().getName();
 
-            if (memberName == null || (memberName.equalsIgnoreCase(localName) && !config.selfCheck())) {
-                return;
+            if (memberName == null || (memberName.equalsIgnoreCase(localName))) {
+                this.clanJoinedTick = this.client.getTickCount();
+                if(!config.selfCheck())
+                    return;
             }
 
             final String warningMessage = getWarningMessageByUsername(memberName);
@@ -221,13 +223,6 @@ public class ClanChatWarningsPlugin extends Plugin {
         }
         if (gameStateChanged.getGameState() == GameState.LOGGING_IN || gameStateChanged.getGameState() == GameState.HOPPING) {
             fetchRemoteNames(false);
-        }
-    }
-
-    @Subscribe
-    public void onFriendsChatChanged(FriendsChatChanged event) {
-        if (event.isJoined()) {
-            this.clanJoinedTick = this.client.getTickCount();
         }
     }
 
